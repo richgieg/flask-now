@@ -55,7 +55,7 @@ source venv/bin/active
 ```
 
 ##Share Your App
-As soon as you've run the initialization steps above, you'll have a clean,
+As soon as you've run the steps in the "Initialize" section above, you'll have a clean,
 fully-functioning local git repository for your new app that you can share on GitHub.
 To do so, create a new repository in your GitHub account, then link your local
 repository to the GitHub repository.
@@ -65,9 +65,9 @@ git push -u origin master
 ```
 
 ##How Others Can Run Your App
-When other developers clone your repository, they will need to initialize the
-virtual environment and acquire your app's prerequisites. This is accomplished
-by running the ```setup``` script below.
+When other developers clone your repository, they will need to create and initialize a
+virtual environment on their own local system and acquire your app's prerequisites. This
+is accomplished by running the ```setup``` script below.
 ```
 git clone https://github.com/[your-user-name]/[your-repo-name].git
 cd [your-repo-name]

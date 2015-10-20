@@ -1,4 +1,4 @@
-from flask import flask
+from flask import Flask
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.script import Manager
 

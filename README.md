@@ -15,11 +15,37 @@ matures.
 - virtualenv
 
 
-##Prequisite Installation Instructions (Ubuntu / Debian)
+##Prequisite Installation Instructions (Ubuntu)
 
 **Install pip**
 ```
 sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
+sudo apt-get update
+sudo apt-get install python-pip
+```
+
+**Install virtualenv**
+```
+sudo pip install virtualenv
+```
+
+**Install python-dev**
+```
+sudo apt-get install python-dev
+```
+
+**Install and configure git**
+```
+sudo apt-get install git
+git config --global user.name "Your Name Here"
+git config --global user.email "your_github_username@users.noreply.github.com"
+```
+
+
+##Prequisite Installation Instructions (Debian)
+
+**Install pip**
+```
 sudo apt-get update
 sudo apt-get install python-pip
 ```

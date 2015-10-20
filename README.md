@@ -47,8 +47,8 @@ then initializes a fresh git repository for your new app. When the script
 completes, your shell will be left in the virtual environment so you can
 run the app. To learn more about this virtual environment, Google "virtualenv".
 ```
-git clone https://github.com/richgieg/flask-now.git your-directory-name-here
-cd your-directory-name-here
+git clone https://github.com/richgieg/flask-now.git your-app-name-here
+cd your-app-name-here
 source create
 ```
 

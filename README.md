@@ -17,7 +17,9 @@ matures.
 ##Initialize
 The ```create``` script initializes a virtual environment using virtualenv,
 acquires all prerequisite packages that the app needs to run properly, and
-then initializes a fresh git repository for your new app.
+then initializes a fresh git repository for your new app. When the script
+completes, your shell will be left in the virtual environment so you can
+run the app. To learn more about this virtual environment, Google "virtualenv".
 ```
 git clone https://github.com/richgieg/flask-now.git [your-directory-here]
 cd [your-directory-here]

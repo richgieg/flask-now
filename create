@@ -3,5 +3,5 @@ source venv/bin/activate
 pip install flask flask-bootstrap flask-script
 rm create
 rm -rf .git
-rm -rf .gitignore
-rm -rf README.md
+rm .gitignore
+rm README.md

@@ -10,17 +10,23 @@ matures.
 ##Prerequisites
 - Linux OS (might work on Windows with some minor tweaking)
 - git
+- pip
 - python-dev
 - virtualenv
 
 
-##Prequisite Installation Instructions (Ubuntu 15.04)
+##Prequisite Installation Instructions (Ubuntu / Debian)
 
-**Install virtualenv**
+**Install pip**
 ```
 sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
 sudo apt-get update
-sudo apt-get install virtualenv
+sudo apt-get install python-pip
+```
+
+**Install virtualenv**
+```
+sudo pip install virtualenv
 ```
 
 **Install python-dev**

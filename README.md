@@ -56,6 +56,19 @@ will need to reactivate it.
 source activate
 ```
 
+
+##Install Packages
+If your app requires more functionality, you can run the ```add``` command. This
+command is a wrapper for the ```pip install``` command which adds the dependency
+to your app's ```setup``` script so when folks clone your repository they will
+be able to easily acquire all of the necessary packages to execute it
+(see "How Others Can Run Your App" below).
+```
+add [package name]
+add flask-sqlalchemy
+```
+
+
 ##Share Your App
 As soon as you've run the steps in the "Initialize" section above, you'll have a clean,
 fully-functioning local git repository for your new app that you can share on GitHub.

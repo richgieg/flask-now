@@ -9,13 +9,25 @@ matures.
 
 ##Prerequisites
 - Linux OS (might work on Windows with some minor tweaking)
+- python
+- python-dev
 - git
 - pip
-- python-dev
 - virtualenv
 
 
 ##Prequisite Installation Instructions (Ubuntu)
+**Update package lists**
+```
+sudo apt-get update
+```
+
+**Install python**
+
+*It is very likely that python is already installed.*
+```
+sudo apt-get install python
+```
 
 **Install pip**
 ```
@@ -43,10 +55,20 @@ git config --global user.email "your_github_username@users.noreply.github.com"
 
 
 ##Prequisite Installation Instructions (Debian)
+**Update package lists**
+```
+sudo apt-get update
+```
+
+**Install python**
+
+*It is very likely that python is already installed.*
+```
+sudo apt-get install python
+```
 
 **Install pip**
 ```
-sudo apt-get update
 sudo apt-get install python-pip
 ```
 

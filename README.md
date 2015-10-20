@@ -24,7 +24,7 @@ python app.py runserver -d -r
 
 
 ##Stop
-```
 *(Press CTRL+C to stop development server)*
+```
 deactivate
 ```

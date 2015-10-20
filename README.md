@@ -7,11 +7,37 @@ code and template code is currently based on examples from the book
 matures.
 
 
-##Requirements
-- Linux
+##Prerequisites
+- Linux OS (might work on Windows with some minor tweaking)
 - git
 - python-dev
 - virtualenv
+
+
+##Prequisite Installation Instructions (Ubuntu / Debian)
+
+**Install virtualenv**
+```
+sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
+sudo apt-get update
+sudo apt-get install virtualenv
+```
+
+**Install python-dev**
+```
+sudo apt-get install python-dev
+```
+
+**Install and configure git**
+```
+sudo apt-get install git
+git config --global user.name "Your Name Here"
+git config --global user.email "your_github_username@users.noreply.github.com"
+```
+
+
+##Prequisite Installation Instructions (other Linux distros / Windows)
+To be added at a later time...
 
 
 ##Initialize
@@ -21,8 +47,8 @@ then initializes a fresh git repository for your new app. When the script
 completes, your shell will be left in the virtual environment so you can
 run the app. To learn more about this virtual environment, Google "virtualenv".
 ```
-git clone https://github.com/richgieg/flask-now.git [your-directory-here]
-cd [your-directory-here]
+git clone https://github.com/richgieg/flask-now.git your-directory-name-here
+cd your-directory-name-here
 source create
 ```
 
@@ -75,10 +101,9 @@ dependency to your app's ```setup``` script so when others
 clone your repository they will be able to easily acquire all of the necessary
 packages to execute it (see "How Others Can Run Your App" below).
 ```
-add [package name]
 add flask-sqlalchemy
 ```
-
+*```flask-sqlalchemy``` can be replaced with any other pip-installable package.*
 
 ##Share Your App
 As soon as you've run the steps in the "Initialize" section above, you'll have a clean,
@@ -86,7 +111,7 @@ fully-functioning local git repository for your new app that you can share on Gi
 To do so, create a new repository in your GitHub account, then link your local
 repository to the GitHub repository.
 ```
-git remote add origin https://github.com/[your-user-name]/[your-repo-name].git
+git remote add origin https://github.com/your-user-name/your-repo-name.git
 git push -u origin master
 ```
 
@@ -95,8 +120,8 @@ When other developers clone your repository, they will need to create and initia
 virtual environment on their own local system and acquire your app's prerequisites. This
 is accomplished by running the ```setup``` script below.
 ```
-git clone https://github.com/[your-user-name]/[your-repo-name].git
-cd [your-repo-name]
+git clone https://github.com/your-user-name/your-repo-name.git
+cd your-repo-name
 source setup
 python app.py runserver -d -r
 ```

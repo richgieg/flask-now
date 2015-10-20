@@ -72,7 +72,7 @@ git config --global user.email "your_github_username@users.noreply.github.com"
 To be added at a later time...
 
 
-##Initialize
+##Create Your App
 The ```create``` script initializes a virtual environment using virtualenv,
 acquires all prerequisite packages that the app needs to run properly, and
 then initializes a fresh git repository for your new app. When the script

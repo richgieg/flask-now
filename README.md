@@ -4,8 +4,11 @@ Create a Bootstrap-enabled Flask app quickly with this starter kit
 
 ##Requirements
 Linux
+
 git
+
 python-dev
+
 virtualenv
 
 

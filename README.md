@@ -14,7 +14,7 @@ matures.
 - virtualenv
 
 
-##Prequisite Installation Instructions (Ubuntu / Debian)
+##Prequisite Installation Instructions (Ubuntu 15.04)
 
 **Install virtualenv**
 ```

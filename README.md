@@ -58,11 +58,12 @@ source activate
 
 
 ##Install Packages
-If your app requires more functionality, you can run the ```add``` command. This
-command is a wrapper for the ```pip install``` command which adds the dependency
-to your app's ```setup``` script so when folks clone your repository they will
-be able to easily acquire all of the necessary packages to execute it
-(see "How Others Can Run Your App" below).
+If your app requires more functionality, you can run the ```add``` command to 
+install extra packages, as long as your virtual environment is active. This
+command is just a wrapper for the ```pip install``` command which adds the
+dependency to your app's ```setup``` script so when others
+clone your repository they will be able to easily acquire all of the necessary
+packages to execute it (see "How Others Can Run Your App" below).
 ```
 add [package name]
 add flask-sqlalchemy

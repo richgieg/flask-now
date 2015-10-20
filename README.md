@@ -37,8 +37,18 @@ python app.py runserver -d -r
 ```
 
 
+##Connect
+Now that your app is running on the development server, you can access it
+from your browser by visiting the following address:
+```
+http://localhost:5000
+```
+
+
 ##Stop
-*Press CTRL+C to stop development server.*
+*Press CTRL+C in your terminal to stop development server.*
+```
+```
 
 
 ##Deactivate the Virtual Environment

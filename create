@@ -2,3 +2,6 @@ source setup
 rm -rf .git
 rm README.md
 rm create
+git init
+git add -A
+git commit -m "Initialize repository"

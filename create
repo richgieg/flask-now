@@ -1,6 +1,6 @@
 virtualenv venv
 source venv/bin/activate
-pip install flask flask-bootstrap flask-script
+pip install flask flask-bootstrap flask-moment flask-script
 rm create
 rm -rf .git
 rm .gitignore

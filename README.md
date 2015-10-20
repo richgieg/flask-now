@@ -51,7 +51,7 @@ deactivate
 In order to run the app again after deactivating the virtual environment, you
 will need to reactivate it.
 ```
-source venv/bin/active
+source activate
 ```
 
 ##Share Your App

@@ -1,0 +1,8 @@
+source setup
+rm -rf .git
+rm README.md
+rm create
+mv add venv/bin/
+git init
+git add -A
+git commit -m "Initialize repository"

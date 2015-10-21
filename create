@@ -1,4 +1,5 @@
 source setup
+pip freeze >requirements.txt
 rm -rf .git
 rm README.md
 rm create

@@ -1,2 +1,0 @@
-pip install $1
-echo "pip install $1" >> setup

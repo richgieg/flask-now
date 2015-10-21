@@ -1,3 +1,0 @@
-virtualenv venv
-source venv/bin/activate
-pip install flask flask-bootstrap flask-moment flask-script flask-wtf

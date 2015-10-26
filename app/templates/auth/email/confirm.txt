@@ -1,13 +1,13 @@
 Dear {{ user.username }},
 
-Welcome to Flasky!
+Welcome to {{ config['APP_TITLE'] }}!
 
-To confirm your account please click on the following link:
+To confirm your account, please visit following link:
 
 {{ url_for('auth.confirm', token=token, _external=True) }}
 
 Sincerely,
 
-The Flasky Team
+The {{ config['APP_TITLE'] }} Team
 
 Note: replies to this email address are not monitored.

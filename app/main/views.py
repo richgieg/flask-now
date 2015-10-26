@@ -18,6 +18,12 @@ def user(username):
     return render_template('user.html', user=user)
 
 
+@main.route('/users')
+def users():
+    users = User.query.order_by(User.username).all()
+    return render_template('users.html', users=users)
+
+
 @main.route('/edit-profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():

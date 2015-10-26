@@ -12,9 +12,9 @@ class NameForm(Form):
 
 
 class EditProfileForm(Form):
-    name = StringField('Real name', validators=[Length(0, 64)])
+    name = StringField('Real Name', validators=[Length(0, 64)])
     location = StringField('Location', validators=[Length(0, 64)])
-    about_me = TextAreaField('About me')
+    about_me = TextAreaField('About Me')
     submit = SubmitField('Submit')
 
 
@@ -27,9 +27,9 @@ class EditProfileAdminForm(Form):
                                           'numbers, dots or underscores')])
     confirmed = BooleanField('Confirmed')
     role = SelectField('Role', coerce=int)
-    name = StringField('Real name', validators=[Length(0, 64)])
+    name = StringField('Real Name', validators=[Length(0, 64)])
     location = StringField('Location', validators=[Length(0, 64)])
-    about_me = TextAreaField('About me')
+    about_me = TextAreaField('About Me')
     submit = SubmitField('Submit')
 
     def __init__(self, user, *args, **kwargs):

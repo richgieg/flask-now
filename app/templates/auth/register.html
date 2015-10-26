@@ -4,10 +4,16 @@
 {% set page_title = 'Register' %}
 
 {% block page_content %}
-<div class="page-header">
-    <h1>Register</h1>
+<div class="row">
+    <div class="col-md-12">
+        <div class="page-header">
+            <h1>Register</h1>
+        </div>
+    </div>
 </div>
-<div class="col-md-4">
-    {{ wtf.quick_form(form) }}
+<div class="row">
+    <div class="col-md-4">
+        {{ wtf.quick_form(form) }}
+    </div>
 </div>
 {% endblock %}

@@ -3,32 +3,34 @@
 {% set page_title = 'Users' %}
 
 {% block page_content %}
-<div class="page-header">
-    <h1>Users</h1>
+<div class="row">
+    <div class="col-md-12">
+        <div class="page-header">
+            <h1>Users</h1>
+        </div>
+    </div>
 </div>
-<div class="col-md-4">
-    {% if users %}
-    <ul class="media-list">
-        {% for user in users %}
-        <li class="media">
+{% if users %}
+<div class="row">
+    {% for user in users %}
+    <div class="col-sm-6 col-md-4">
+        <div class="media">
             <div class="media-left">
                 <a href="{{ url_for('main.user', username=user.username) }}">
-                    <img class="media-object" src="{{ user.gravatar(size=90) }}"
-                        alt="Gravatar image for user {{ user.username }}">
+                    <img class="media-object" src="{{ user.gravatar(size=90) }}" alt="Gravatar image for user {{ user.username }}">
                 </a>
             </div>
             <div class="media-body">
                 <h4 class="media-heading">
-                    <a href="{{ url_for('main.user', username=user.username) }}">
-                        {{ user.username }}
-                    </a>
+                    <a href="{{ url_for('main.user', username=user.username) }}">{{ user.username }}</a>
                 </h4>
                 <p>Member since {{ moment(user.member_since).format('L') }}<br>
                 Last seen {{ moment(user.last_seen).fromNow() }}</p>
             </div>
-        </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+        </div>
+        <br>
+    </div>
+    {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

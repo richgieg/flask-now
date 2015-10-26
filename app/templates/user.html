@@ -3,11 +3,18 @@
 {% set page_title = user.username %}
 
 {% block page_content %}
-<div class="page-header">
-    <img class="img-rounded profile-thumbnail" src="{{ user.gravatar(size=256) }}"
-        alt="Gravatar image for user {{ user.username }}">
-    <div class="profile-header">
-        <h1>{{ user.username }}</h1>
+<div class="row">
+    <div class="col-md-12">
+        <div class="page-header">
+            <h1>{{ user.username }}</h1>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-3 col-md-2">
+        <img class="img-responsive img-rounded" src="{{ user.gravatar(size=250) }}" alt="Gravatar image for user {{ user.username }}"><br>
+    </div>
+    <div class="col-sm-9 col-md-7">
         {% if user.name or user.location %}
         <p>
             {% if user.name %}{{ user.name }}<br>{% endif %}
@@ -20,7 +27,10 @@
         <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
         {% endif %}
         {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
-        <p>Member since {{ moment(user.member_since).format('L') }}. Last seen {{ moment(user.last_seen).fromNow() }}.</p>
+        <p>
+            Member since {{ moment(user.member_since).format('L') }}.
+            Last seen {{ moment(user.last_seen).fromNow() }}.
+        </p>
         <p>
             {% if user == current_user %}
             <a class="btn btn-default" href="{{ url_for('.edit_profile') }}">Edit Profile</a>

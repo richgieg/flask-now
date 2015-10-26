@@ -1,9 +1,9 @@
 #Flask-Now
 **Create a Bootstrap-enabled Flask app quickly with this starter kit.**
 
-The app
-code and template code is currently based on examples from the book
-"Flask Web Development" by Miguel Grinberg.
+The code is based on examples from the book "Flask Web Development" by Miguel
+Grinberg, with updates made by me. The convenience scripts activate, add,
+create and setup are written by me. Enjoy!
 
 
 ##Prerequisites
@@ -149,7 +149,7 @@ source activate
 
 
 ##Install Packages
-If your app requires more functionality, you can run the ```add``` command to 
+If your app requires more functionality, you can run the ```add``` command to
 install extra packages, as long as your virtual environment is active. This
 command is just a wrapper for the ```pip install``` command which adds the
 dependency to your app's ```requirements.txt``` file so when others

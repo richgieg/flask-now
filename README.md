@@ -3,8 +3,7 @@
 
 The app
 code and template code is currently based on examples from the book
-"Flask Web Development" by Miguel Grinberg. This may change as the project
-matures.
+"Flask Web Development" by Miguel Grinberg.
 
 
 ##Prerequisites
@@ -108,12 +107,14 @@ source create
 
 
 ##Run
-Your shiny new app comes with the flask-script extension, which allows a
-finer level of control over your app's execution from the command line. The
+Your shiny new app comes with the Flask-Script extension, which allows a
+finer level of control over your app's execution from the command line. Also
+included, thanks to Miguel Grinberg, is a ```manage.py``` script which makes
+use of Flask-Script to provide some necessary commands. The
 following command executes your app on the development server with debugging
 and auto-restarts enabled.
 ```
-python app.py runserver -d -r
+./manage.py runserver
 ```
 
 
@@ -151,13 +152,13 @@ source activate
 If your app requires more functionality, you can run the ```add``` command to 
 install extra packages, as long as your virtual environment is active. This
 command is just a wrapper for the ```pip install``` command which adds the
-dependency to your app's ```setup``` script so when others
+dependency to your app's ```requirements.txt``` file so when others
 clone your repository they will be able to easily acquire all of the necessary
 packages to execute it (see "How Others Can Run Your App" below).
 ```
-add flask-sqlalchemy
+add flask-babel
 ```
-*```flask-sqlalchemy``` can be replaced with any other pip-installable package.*
+*```flask-babel``` can be replaced with any other pip-installable package.*
 
 ##Share Your App
 As soon as you've run the steps in the "Initialize" section above, you'll have a clean,
@@ -177,5 +178,5 @@ is accomplished by running the ```setup``` script below.
 git clone https://github.com/your-user-name/your-repo-name.git
 cd your-repo-name
 source setup
-python app.py runserver -d -r
+./manage.py runserver
 ```

@@ -1,7 +1,6 @@
 #Flask-Now
 **Use this starter kit to quickly create Bootstrap-enabled Flask web applications
 with built-in user management and email functionality.**
-**Create a Bootstrap-enabled Flask app quickly with this starter kit.**
 
 This project is based on examples from the book ["Flask Web Development" by
 Miguel Grinberg](http://flaskbook.com/) and his corresponding GitHub repository

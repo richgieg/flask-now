@@ -105,6 +105,21 @@ cd your-app-name-here
 source create
 ```
 
+##Set Config and Environment Variables for Email
+For the app to be able to send emails, you will need to set some environment
+variables and adjust settings in ```config.py```. It is recommended to write a
+script to set environment variables to make your life easier. Be sure not to
+share the script though, as some of the environment variables contain sensitive
+information.
+
+```
+export MAIL_USERNAME=
+export MAIL_PASSWORD=
+```
+*In ```config.py``` look for constants beginning with MAIL_ and make necessary
+adjustments to enable email functionality through your mail server of choice.
+The app is configured to use Google's Gmail server by default.*
+
 
 ##Initialize the SQLite Database
 Your shiny new app comes with the Flask-Script extension, which allows a
@@ -188,5 +203,8 @@ is accomplished by running the ```setup``` script below.
 git clone https://github.com/your-user-name/your-repo-name.git
 cd your-repo-name
 source setup
+*Set environment variables, if applicable*
+./manage.py db upgrade
+./manage.py seed
 ./manage.py runserver
 ```

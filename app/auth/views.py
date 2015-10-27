@@ -1,4 +1,4 @@
-from flask import render_template, redirect, request, url_for, flash
+from flask import render_template, redirect, request, url_for, flash, session
 from flask.ext.login import login_user, logout_user, login_required, \
     current_user
 from . import auth
@@ -13,6 +13,10 @@ from .forms import LoginForm, RegistrationForm, ChangePasswordForm,\
 def before_request():
     if current_user.is_authenticated:
         current_user.ping()
+        if not current_user.verify_auth_token(session['auth_token']):
+            logout_user()
+            flash('Your session has expired.')
+            return redirect(url_for('auth.login'))
         if not current_user.confirmed \
                 and request.endpoint[:5] != 'auth.' \
                 and request.endpoint != 'static':
@@ -33,6 +37,7 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
+            session['auth_token'] = user.auth_token
             return redirect(request.args.get('next') or url_for('main.index'))
         flash('Invalid username or password.')
     return render_template('auth/login.html', form=form)
@@ -42,7 +47,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.')
+    flash('You have logged out.')
     return redirect(url_for('main.index'))
 
 
@@ -93,6 +98,7 @@ def change_password():
         if current_user.verify_password(form.old_password.data):
             current_user.password = form.password.data
             db.session.add(current_user)
+            session['auth_token'] = current_user.auth_token
             flash('Your password has been updated.')
             return redirect(url_for('main.index'))
         else:
@@ -159,6 +165,7 @@ def change_email_request():
 @login_required
 def change_email(token):
     if current_user.change_email(token):
+        session['auth_token'] = current_user.auth_token
         flash('Your email address has been updated.')
     else:
         flash('Invalid request.')

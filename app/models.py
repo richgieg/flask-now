@@ -179,6 +179,9 @@ class User(UserMixin, db.Model):
     def update_auth_token(self):
         self.auth_token = self.get_auth_token()
 
+    def verify_auth_token(self, token):
+        return token == self.auth_token
+
     def __repr__(self):
         return '<User %r>' % self.username
 

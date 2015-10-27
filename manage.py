@@ -17,6 +17,12 @@ manager.add_command('db', MigrateCommand)
 
 
 @manager.command
+def seed():
+    """Seed the database."""
+    Role.insert_roles()
+
+
+@manager.command
 def test():
     """Run the unit tests."""
     import unittest

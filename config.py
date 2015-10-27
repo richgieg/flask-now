@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -17,6 +18,7 @@ class Config:
     # Flask-Login config.
     SESSION_PROTECTION = None
     REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_DURATION = timedelta(days=365)
 
     # Flask-Mail config.
     MAIL_SERVER = 'smtp.googlemail.com'

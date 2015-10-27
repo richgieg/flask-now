@@ -3,8 +3,8 @@
 with built-in user management and email functionality.**
 
 This project is based on examples from the book ["Flask Web Development" by
-Miguel Grinberg](http://flaskbook.com/) and his corresponding GitHub repository
-[Flasky](http://github.com/miguelgrinberg/flasky).
+Miguel Grinberg](http://flaskbook.com/) as well as code from his corresponding
+Flask application called [Flasky](http://github.com/miguelgrinberg/flasky).
 
 ##Prerequisites
 - Linux OS (might work on Windows with some minor tweaking)

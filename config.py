@@ -59,7 +59,7 @@ class ProductionConfig(Config):
 
     # Flask-Login config.
     # Uncomment the following line if you're running HTTPS.
-    # REMEMBER_COOKIE_SECURE= True
+    # REMEMBER_COOKIE_SECURE = True
 
     # Flask-SQLAlchemy config.
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \

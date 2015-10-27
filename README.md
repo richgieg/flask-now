@@ -105,16 +105,31 @@ cd your-app-name-here
 source create
 ```
 
+
+##Set Environment Variables
+Flask and many of its extensions utilize a value called SECRET_KEY in order to
+perform digital signing. There is a default value for this in ```config.py```
+but it's wise to set it to a top-secret value stored in an environment variable
+(especially when in production). Also, you should set the APP_ADMIN variable,
+which corresponds to the email address of the app administrator. This
+serves to automatically assign admin rights when you initially create the admin
+user account through the app's user registration page. To save some trouble
+on the next time you want to run the app, it is recommended to write
+a script to set the environment variables. Just be sure not to share the script
+though, as some of the environment variables contain sensitive information.
+```
+export SECRET_KEY=this_should_be_a_long_and_random_value
+export APP_ADMIN=admin@example.com
+```
+
+
 ##Configure Email Functionality
-For the app to be able to send emails, you will need to set some environment
-variables and adjust settings in ```config.py```. It is recommended to write a
-script to set environment variables to make your life easier. Be sure not to
-share the script though, as some of the environment variables contain sensitive
-information.
+For the app to be able to send emails, you will need to set more environment
+variables and adjust settings in ```config.py```.
 
 ```
-export MAIL_USERNAME=
-export MAIL_PASSWORD=
+export MAIL_USERNAME=user@example.com
+export MAIL_PASSWORD=My$trongPa$$w0rd
 ```
 *In ```config.py``` look for constants beginning with MAIL_ and make necessary
 adjustments to enable email functionality through your mail server of choice.
@@ -207,8 +222,9 @@ source setup
 ./manage.py seed
 ```
 Also, they may need to alter the email server settings in ```config.py``` as
-well as set the required environment variables (see "Configure Email
-Functionality" above). After that, they can execute your app.
+well as set the required environment variables (see "Set Environment Variables"
+and "Configure Email Functionality" above). After that, they can execute your
+app.
 ```
 ./manage.py runserver
 ```

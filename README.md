@@ -106,11 +106,21 @@ source create
 ```
 
 
-##Run
+##Initialize the SQLite Database
 Your shiny new app comes with the Flask-Script extension, which allows a
 finer level of control over your app's execution from the command line. Also
 included, thanks to Miguel Grinberg, is a ```manage.py``` script which makes
-use of Flask-Script to provide some necessary commands. The
+use of Flask-Script to provide some helpful commands. Before running your app,
+you will need to initialize its database. This can be completed by executing
+the following commands.
+```
+./manage.py db upgrade
+./manage.py seed
+```
+
+
+##Run
+The
 following command executes your app on the development server with debugging
 and auto-restarts enabled.
 ```

@@ -14,6 +14,10 @@ class Config:
     # Flask config.
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
 
+    # Flask-Login config.
+    SESSION_PROTECTION = None
+    REMEMBER_COOKIE_HTTPONLY = True
+
     # Flask-Mail config.
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
@@ -49,6 +53,14 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
+    # Flask config.
+    # Uncomment the following line if you're running HTTPS.
+    # SESSION_COOKIE_SECURE = True
+
+    # Flask-Login config.
+    # Uncomment the following line if you're running HTTPS.
+    # REMEMBER_COOKIE_SECURE= True
+
     # Flask-SQLAlchemy config.
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')

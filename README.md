@@ -203,12 +203,12 @@ is accomplished by running the ```setup``` script below.
 git clone https://github.com/your-user-name/your-repo-name.git
 cd your-repo-name
 source setup
+./manage.py db upgrade
+./manage.py seed
 ```
 Also, they may need to alter the email server settings in ```config.py``` as
 well as set the required environment variables (see "Configure Email
-Functionality" above).
+Functionality" above). After that, they can execute your app.
 ```
-./manage.py db upgrade
-./manage.py seed
 ./manage.py runserver
 ```

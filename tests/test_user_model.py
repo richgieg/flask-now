@@ -150,3 +150,20 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue('d=retro' in gravatar_retro)
         self.assertTrue('https://secure.gravatar.com/avatar/' +
                         'd4c74594d841139328695756648b6bd6' in gravatar_ssl)
+
+    def test_auth_token(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        self.assertIsNotNone(u.auth_token)
+
+    def test_auth_token_changes_when_email_is_updated(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        old_auth = u.auth_token
+        change_email_token = u.generate_email_change_token('fred@example.com')
+        u.change_email(change_email_token)
+        self.assertNotEqual(old_auth, u.auth_token)
+
+    def test_auth_token_changes_when_password_is_updated(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        old_auth = u.auth_token
+        u.password = 'dog'
+        self.assertNotEqual(old_auth, u.auth_token)

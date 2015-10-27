@@ -3,7 +3,7 @@ import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app, request
-from flask.ext.login import UserMixin, AnonymousUserMixin
+from flask.ext.login import UserMixin, AnonymousUserMixin, make_secure_token
 from . import db, login_manager
 
 
@@ -62,6 +62,7 @@ class User(UserMixin, db.Model):
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
+    auth_token = db.Column(db.String(128))
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -70,9 +71,8 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(permissions=0xff).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
-        if self.email is not None and self.avatar_hash is None:
-            self.avatar_hash = hashlib.md5(
-                self.email.encode('utf-8')).hexdigest()
+        self.update_avatar_hash()
+        self.update_auth_token()
 
     @property
     def password(self):
@@ -81,6 +81,7 @@ class User(UserMixin, db.Model):
     @password.setter
     def password(self, password):
         self.password_hash = generate_password_hash(password)
+        self.update_auth_token()
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -135,8 +136,8 @@ class User(UserMixin, db.Model):
         if self.query.filter_by(email=new_email).first() is not None:
             return False
         self.email = new_email
-        self.avatar_hash = hashlib.md5(
-            self.email.encode('utf-8')).hexdigest()
+        self.update_avatar_hash()
+        self.update_auth_token()
         db.session.add(self)
         return True
 
@@ -156,10 +157,27 @@ class User(UserMixin, db.Model):
             url = 'https://secure.gravatar.com/avatar'
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar_hash or hashlib.md5(
-            self.email.encode('utf-8')).hexdigest()
+        hash = self.avatar_hash or self.get_avatar_hash()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
+
+    def get_avatar_hash(self):
+        if self.email is not None:
+            return hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        return None
+
+    def update_avatar_hash(self):
+        self.avatar_hash = self.get_avatar_hash()
+
+    def get_auth_token(self):
+        if (self.email is not None and self.username is not None and
+                self.password_hash is not None):
+            return make_secure_token(self.email, self.username,
+                                     self.password_hash)
+        return None
+
+    def update_auth_token(self):
+        self.auth_token = self.get_auth_token()
 
     def __repr__(self):
         return '<User %r>' % self.username

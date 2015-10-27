@@ -105,7 +105,7 @@ cd your-app-name-here
 source create
 ```
 
-##Set Config and Environment Variables for Email
+##Configure Email Functionality
 For the app to be able to send emails, you will need to set some environment
 variables and adjust settings in ```config.py```. It is recommended to write a
 script to set environment variables to make your life easier. Be sure not to
@@ -203,7 +203,11 @@ is accomplished by running the ```setup``` script below.
 git clone https://github.com/your-user-name/your-repo-name.git
 cd your-repo-name
 source setup
-*Set environment variables, if applicable*
+```
+Also, they may need to alter the email server settings in ```config.py``` as
+well as set the required environment variables (see "Configure Email
+Functionality" above).
+```
 ./manage.py db upgrade
 ./manage.py seed
 ./manage.py runserver

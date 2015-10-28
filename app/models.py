@@ -157,17 +157,17 @@ class User(UserMixin, db.Model):
             url = 'https://secure.gravatar.com/avatar'
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar_hash or self.get_avatar_hash()
+        hash = self.avatar_hash or self.generate_avatar_hash()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
-    def get_avatar_hash(self):
+    def generate_avatar_hash(self):
         if self.email is not None:
             return hashlib.md5(self.email.encode('utf-8')).hexdigest()
         return None
 
     def update_avatar_hash(self):
-        self.avatar_hash = self.get_avatar_hash()
+        self.avatar_hash = self.generate_avatar_hash()
 
     def generate_auth_token(self):
         if (self.email is not None and self.username is not None and

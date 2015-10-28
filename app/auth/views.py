@@ -103,7 +103,8 @@ def change_username():
             current_user.change_username(form.username.data)
             session['auth_token'] = current_user.auth_token
             flash('Your username has been updated.')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.user',
+                                    username=current_user.username))
         else:
             flash('Invalid password.')
     return render_template("auth/change_username.html", form=form)
@@ -119,7 +120,8 @@ def change_password():
             db.session.add(current_user)
             session['auth_token'] = current_user.auth_token
             flash('Your password has been updated.')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.user',
+                                    username=current_user.username))
         else:
             flash('Invalid password.')
     return render_template("auth/change_password.html", form=form)
@@ -174,7 +176,8 @@ def change_email_request():
                        user=current_user, token=token)
             flash('An email with instructions for confirming your new email '
                   'address has been sent.')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.user',
+                                    username=current_user.username))
         else:
             flash('Invalid password.')
     return render_template("auth/change_email.html", form=form)
@@ -188,4 +191,5 @@ def change_email(token):
         flash('Your email address has been updated.')
     else:
         flash('Invalid request.')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.user',
+                            username=current_user.username))

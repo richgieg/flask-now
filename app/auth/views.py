@@ -31,14 +31,6 @@ def unconfirmed():
     return render_template('auth/unconfirmed.html')
 
 
-def sanitize_redirect_url(target):
-    # Defeats open redirect attacks.
-    if target:
-        parts = list(urlparse(target)[2:])
-        parts[0] = '/'.join(filter(None, parts[0].split('/')))
-        return '/' + urlunparse(['', ''] + parts)
-
-
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -47,8 +39,7 @@ def login():
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             session['auth_token'] = user.auth_token
-            next = sanitize_redirect_url(request.args.get('next'))
-            return redirect(next or url_for('main.index'))
+            return form.redirect('main.index')
         flash('Invalid username or password.')
     return render_template('auth/login.html', form=form)
 

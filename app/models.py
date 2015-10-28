@@ -1,8 +1,8 @@
 from datetime import datetime
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import current_app, request
+from itsdangerous import Signer, TimedJSONWebSignatureSerializer as Serializer
+from flask import current_app, request, session
 from flask.ext.login import UserMixin, AnonymousUserMixin, make_secure_token
 from . import db, login_manager
 
@@ -169,7 +169,7 @@ class User(UserMixin, db.Model):
     def update_avatar_hash(self):
         self.avatar_hash = self.get_avatar_hash()
 
-    def get_auth_token(self):
+    def generate_auth_token(self):
         if (self.email is not None and self.username is not None and
                 self.password_hash is not None):
             return make_secure_token(self.email, self.username,
@@ -177,10 +177,15 @@ class User(UserMixin, db.Model):
         return None
 
     def update_auth_token(self):
-        self.auth_token = self.get_auth_token()
+        self.auth_token = self.generate_auth_token()
 
     def verify_auth_token(self, token):
         return token == self.auth_token
+
+    # Returns a signed version of auth_token for Flask-Login's remember cookie.
+    def get_auth_token(self):
+        s = Signer(current_app.config['SECRET_KEY'])
+        return s.sign(self.auth_token)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -199,3 +204,17 @@ login_manager.anonymous_user = AnonymousUser
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@login_manager.token_loader
+def load_user_from_signed_token(signed_token):
+    s = Signer(current_app.config['SECRET_KEY'])
+    try:
+        auth_token = s.unsign(signed_token)
+    except:
+        pass
+    if auth_token:
+        user = User.query.filter_by(auth_token=auth_token).first()
+        if user:
+            session['auth_token'] = user.auth_token
+            return user
+    return None

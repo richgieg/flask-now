@@ -1,3 +1,4 @@
+from urlparse import urlparse, urlunparse
 from flask import render_template, redirect, request, url_for, flash, session
 from flask.ext.login import login_user, logout_user, login_required, \
     current_user
@@ -30,6 +31,14 @@ def unconfirmed():
     return render_template('auth/unconfirmed.html')
 
 
+def sanitize_redirect_url(target):
+    # Defeats open redirect attacks.
+    if target:
+        parts = list(urlparse(target)[2:])
+        parts[0] = '/'.join(filter(None, parts[0].split('/')))
+        return '/' + urlunparse(['', ''] + parts)
+
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -38,7 +47,8 @@ def login():
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             session['auth_token'] = user.auth_token
-            return redirect(request.args.get('next') or url_for('main.index'))
+            next = sanitize_redirect_url(request.args.get('next'))
+            return redirect(next or url_for('main.index'))
         flash('Invalid username or password.')
     return render_template('auth/login.html', form=form)
 

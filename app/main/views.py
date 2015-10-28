@@ -20,7 +20,7 @@ def user(username):
 
 @main.route('/users')
 def users():
-    users = User.query.order_by(User.username).all()
+    users = User.query.filter(User.confirmed).order_by(User.username).all()
     return render_template('users.html', users=users)
 
 

@@ -217,4 +217,8 @@ def load_user_from_signed_token(signed_token):
         if user:
             session['auth_token'] = user.auth_token
             return user
+    # This causes Flask-Login to clear the "remember me" cookie. This could
+    # break if Flask-Login's internal implementation changes. A better way
+    # should be implemented. Perhaps install an after_request hook.
+    session['remember'] = 'clear'
     return None

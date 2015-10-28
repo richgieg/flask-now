@@ -44,7 +44,7 @@ class RedirectForm(Form):
 
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
-        if request.method == 'GET':
+        if request.method == 'GET' and request.referrer != request.url:
             self.next.data = request.referrer
 
     def redirect(self, endpoint='index', **values):

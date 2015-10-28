@@ -167,3 +167,9 @@ class UserModelTestCase(unittest.TestCase):
         old_auth = u.auth_token
         u.password = 'dog'
         self.assertNotEqual(old_auth, u.auth_token)
+
+    def test_auth_token_changes_when_username_is_updated(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        old_auth = u.auth_token
+        u.change_username('cooldude')
+        self.assertNotEqual(old_auth, u.auth_token)

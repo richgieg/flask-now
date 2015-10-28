@@ -6,8 +6,9 @@ from . import auth
 from .. import db
 from ..models import User
 from ..email import send_email
-from .forms import LoginForm, RegistrationForm, ChangePasswordForm,\
-    PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
+    PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm, \
+    ChangeUsernameForm
 
 
 @auth.before_app_request
@@ -91,6 +92,21 @@ def resend_confirmation():
                'auth/email/confirm', user=current_user, token=token)
     flash('A new confirmation email has been sent.')
     return redirect(url_for('main.index'))
+
+
+@auth.route('/change-username', methods=['GET', 'POST'])
+@login_required
+def change_username():
+    form = ChangeUsernameForm()
+    if form.validate_on_submit():
+        if current_user.verify_password(form.password.data):
+            current_user.change_username(form.username.data)
+            session['auth_token'] = current_user.auth_token
+            flash('Your username has been updated.')
+            return redirect(url_for('main.index'))
+        else:
+            flash('Invalid password.')
+    return render_template("auth/change_username.html", form=form)
 
 
 @auth.route('/change-password', methods=['GET', 'POST'])

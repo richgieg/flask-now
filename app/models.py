@@ -141,6 +141,11 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
+    def change_username(self, username):
+        self.username = username
+        self.update_auth_token()
+        db.session.add(self)
+
     def can(self, permissions):
         return self.role is not None and \
             (self.role.permissions & permissions) == permissions

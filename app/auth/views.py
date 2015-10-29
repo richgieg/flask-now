@@ -1,5 +1,5 @@
 from urlparse import urlparse, urlunparse
-from flask import render_template, redirect, request, url_for, flash, session, \
+from flask import render_template, redirect, request, url_for, session, \
     make_response
 from flask.ext.login import login_user, logout_user, login_required, \
     current_user, fresh_login_required, confirm_login, login_fresh
@@ -7,18 +7,17 @@ from . import auth
 from .. import db, login_manager
 from ..models import User
 from ..email import send_email
-from ..flash_category import FlashCategory
+from ..messages import AuthMessages, flash_it
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm, \
     ChangeUsernameForm, ReauthenticationForm
 
 
-login_manager.login_message = 'Please log in to access this page.'
-login_manager.login_message_category = FlashCategory.INFO
-login_manager.needs_refresh_message = (
-    'To protect your account, please reauthenticate to access this page.'
-)
-login_manager.needs_refresh_message_category = FlashCategory.INFO
+# Set Flask-Login flash messages.
+login_manager.login_message = AuthMessages.LOGIN_REQUIRED[0]
+login_manager.login_message_category = AuthMessages.LOGIN_REQUIRED[1]
+login_manager.needs_refresh_message = AuthMessages.REFRESH_REQUIRED[0]
+login_manager.needs_refresh_message_category = AuthMessages.REFRESH_REQUIRED[1]
 
 
 def verify_password(user, password):
@@ -34,7 +33,7 @@ def before_request():
         current_user.ping()
         if not current_user.verify_auth_token(session.get('auth_token')):
             logout_user()
-            flash('Your session has expired.', FlashCategory.DANGER)
+            flash_it(AuthMessages.SESSION_EXPIRED)
             return redirect(url_for('auth.login'))
         if (not current_user.confirmed and
                 request.endpoint[:5] != 'auth.' and
@@ -75,7 +74,7 @@ def login():
             login_user(user, form.remember_me.data)
             session['auth_token'] = user.auth_token
             return form.redirect('main.index')
-        flash('Invalid username or password.', FlashCategory.DANGER)
+        flash_it(AuthMessages.INVALID_CREDENTIALS)
     return render_template('auth/login.html', form=form)
 
 
@@ -91,7 +90,7 @@ def reauthenticate():
         if verify_password(current_user, form.password.data):
             confirm_login()
             return form.redirect('main.index')
-        flash('Invalid password.', FlashCategory.DANGER)
+        flash_it(AuthMessages.INVALID_PASSWORD)
     return render_template('auth/reauthenticate.html', form=form)
 
 
@@ -99,7 +98,7 @@ def reauthenticate():
 @login_required
 def logout():
     logout_user()
-    flash('You have logged out.', FlashCategory.SUCCESS)
+    flash_it(AuthMessages.LOG_OUT)
     return redirect(url_for('main.index'))
 
 
@@ -115,8 +114,7 @@ def register():
         token = user.generate_confirmation_token()
         send_email(user.email, 'Confirm Your Account',
                    'auth/email/confirm', user=user, token=token)
-        flash('Check your inbox! A confirmation email has been sent.',
-              FlashCategory.INFO)
+        flash_it(AuthMessages.CONFIRM_ACCOUNT)
         return redirect(url_for('main.index'))
     return render_template('auth/register.html', form=form)
 
@@ -127,11 +125,9 @@ def confirm(token):
     if current_user.confirmed:
         return redirect(url_for('main.index'))
     if current_user.confirm(token):
-        flash('Your account is confirmed. Thank you!',
-              FlashCategory.SUCCESS)
+        flash_it(AuthMessages.ACCOUNT_CONFIRMED)
     else:
-        flash('The confirmation link is invalid or has expired.',
-              FlashCategory.DANGER)
+        flash_it(AuthMessages.INVALID_CONFIRMATION_LINK)
     return redirect(url_for('main.index'))
 
 
@@ -141,7 +137,7 @@ def resend_confirmation():
     token = current_user.generate_confirmation_token()
     send_email(current_user.email, 'Confirm Your Account',
                'auth/email/confirm', user=current_user, token=token)
-    flash('A new confirmation email has been sent.', FlashCategory.INFO)
+    flash_it(AuthMessages.CONFIRM_ACCOUNT)
     return redirect(url_for('main.index'))
 
 
@@ -153,11 +149,11 @@ def change_username():
         if verify_password(current_user, form.password.data):
             current_user.change_username(form.username.data)
             session['auth_token'] = current_user.auth_token
-            flash('Your username has been updated.', FlashCategory.SUCCESS)
+            flash_it(AuthMessages.USERNAME_UPDATED)
             return redirect(url_for('main.user',
                                     username=current_user.username))
         else:
-            flash('Invalid password.', FlashCategory.DANGER)
+            flash_it(AuthMessages.INVALID_PASSWORD)
     return render_template("auth/change_username.html", form=form)
 
 
@@ -170,11 +166,11 @@ def change_password():
             current_user.password = form.password.data
             db.session.add(current_user)
             session['auth_token'] = current_user.auth_token
-            flash('Your password has been updated.', FlashCategory.SUCCESS)
+            flash_it(AuthMessages.PASSWORD_UPDATED)
             return redirect(url_for('main.user',
                                     username=current_user.username))
         else:
-            flash('Invalid password.', FlashCategory.DANGER)
+            flash_it(AuthMessages.INVALID_PASSWORD)
     return render_template("auth/change_password.html", form=form)
 
 
@@ -191,8 +187,7 @@ def password_reset_request():
                        'auth/email/reset_password',
                        user=user, token=token,
                        next=request.args.get('next'))
-        flash('An email with instructions for resetting your password has been '
-              'sent.', FlashCategory.INFO)
+        flash_it(AuthMessages.PASSWORD_RESET_REQUEST)
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
 
@@ -209,9 +204,9 @@ def password_reset(token):
         if user.reset_password(token, form.password.data):
             if user.locked_out:
                 user.unlock()
-                flash('Your account is unlocked.', FlashCategory.SUCCESS)
+                flash_it(AuthMessages.ACCOUNT_UNLOCKED)
             else:
-                flash('Your password is updated.', FlashCategory.SUCCESS)
+                flash_it(AuthMessages.PASSWORD_UPDATED)
             return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('main.index'))
@@ -229,12 +224,11 @@ def change_email_request():
             send_email(new_email, 'Confirm Your Email Address',
                        'auth/email/change_email',
                        user=current_user, token=token)
-            flash('An email with instructions for confirming your new email '
-                  'address has been sent.', FlashCategory.INFO)
+            flash_it(AuthMessages.EMAIL_CHANGE_REQUEST)
             return redirect(url_for('main.user',
                                     username=current_user.username))
         else:
-            flash('Invalid password.', FlashCategory.DANGER)
+            flash_it(AuthMessages.INVALID_PASSWORD)
     return render_template("auth/change_email.html", form=form)
 
 
@@ -243,9 +237,8 @@ def change_email_request():
 def change_email(token):
     if current_user.change_email(token):
         session['auth_token'] = current_user.auth_token
-        flash('Your email address has been updated.',
-              FlashCategory.SUCCESS)
+        flash_it(AuthMessages.EMAIL_UPDATED)
     else:
-        flash('Invalid request.', FlashCategory.DANGER)
+        flash_it(AuthMessages.INVALID_CONFIRMATION_LINK)
     return redirect(url_for('main.user',
                             username=current_user.username))

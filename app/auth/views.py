@@ -1,5 +1,6 @@
 from urlparse import urlparse, urlunparse
-from flask import render_template, redirect, request, url_for, flash, session
+from flask import render_template, redirect, request, url_for, flash, session, \
+    make_response
 from flask.ext.login import login_user, logout_user, login_required, \
     current_user, fresh_login_required, confirm_login, login_fresh
 from . import auth
@@ -20,6 +21,13 @@ login_manager.needs_refresh_message = (
 login_manager.needs_refresh_message_category = FlashCategory.INFO
 
 
+def verify_password(user, password):
+    is_valid_password = user.verify_password(password)
+    if user.locked_out:
+        session['_locked'] = True
+    return is_valid_password
+
+
 @auth.before_app_request
 def before_request():
     if current_user.is_authenticated:
@@ -32,6 +40,21 @@ def before_request():
                 request.endpoint[:5] != 'auth.' and
                 request.endpoint != 'static'):
             return redirect(url_for('auth.unconfirmed'))
+
+
+@auth.after_app_request
+def after_request(response):
+    if session.get('_locked'):
+        logout_user()
+        return make_response(redirect(url_for('auth.locked')))
+    return response
+
+
+@auth.route('/locked')
+def locked():
+    if session.pop('_locked', None):
+        return render_template('auth/locked.html')
+    return redirect(url_for('auth.login'))
 
 
 @auth.route('/unconfirmed')
@@ -48,7 +71,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user is not None and user.verify_password(form.password.data):
+        if user is not None and verify_password(user, form.password.data):
             login_user(user, form.remember_me.data)
             session['auth_token'] = user.auth_token
             return form.redirect('main.index')
@@ -58,11 +81,14 @@ def login():
 
 @auth.route('/reauthenticate', methods=['GET', 'POST'])
 def reauthenticate():
+    # This isn't wrapped with login_required because it wouldn't make sense
+    # to require a login to access the reauthenticate page. Instead, the
+    # following if statement takes its place.
     if not current_user.is_authenticated or login_fresh():
         return redirect(url_for('main.index'))
     form = ReauthenticationForm()
     if form.validate_on_submit():
-        if current_user.verify_password(form.password.data):
+        if verify_password(current_user, form.password.data):
             confirm_login()
             return form.redirect('main.index')
         flash('Invalid password.', FlashCategory.DANGER)
@@ -124,7 +150,7 @@ def resend_confirmation():
 def change_username():
     form = ChangeUsernameForm()
     if form.validate_on_submit():
-        if current_user.verify_password(form.password.data):
+        if verify_password(current_user, form.password.data):
             current_user.change_username(form.username.data)
             session['auth_token'] = current_user.auth_token
             flash('Your username has been updated.', FlashCategory.SUCCESS)
@@ -140,7 +166,7 @@ def change_username():
 def change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
-        if current_user.verify_password(form.old_password.data):
+        if verify_password(current_user, form.password.data):
             current_user.password = form.password.data
             db.session.add(current_user)
             session['auth_token'] = current_user.auth_token
@@ -181,7 +207,11 @@ def password_reset(token):
         if user is None:
             return redirect(url_for('main.index'))
         if user.reset_password(token, form.password.data):
-            flash('Your password has been updated.', FlashCategory.SUCCESS)
+            if user.locked_out:
+                user.unlock()
+                flash('Your account is unlocked.', FlashCategory.SUCCESS)
+            else:
+                flash('Your password is updated.', FlashCategory.SUCCESS)
             return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('main.index'))
@@ -193,7 +223,7 @@ def password_reset(token):
 def change_email_request():
     form = ChangeEmailForm()
     if form.validate_on_submit():
-        if current_user.verify_password(form.password.data):
+        if verify_password(current_user, form.password.data):
             new_email = form.email.data
             token = current_user.generate_email_change_token(new_email)
             send_email(new_email, 'Confirm Your Email Address',

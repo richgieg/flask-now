@@ -1,10 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import Signer, TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app, request, session
 from flask.ext.login import UserMixin, AnonymousUserMixin, make_secure_token
 from . import db, login_manager
+
+
+class AccountPolicy:
+    LOCKOUT_POLICY_ENABLED = True
+    LOCKOUT_THRESHOLD = 5
+    RESET_THRESHOLD_AFTER = timedelta(minutes=30)
 
 
 class Permission:
@@ -65,7 +71,7 @@ class User(UserMixin, db.Model):
     auth_token = db.Column(db.String(128), unique=True, index=True)
     last_failed_login_attempt = db.Column(db.DateTime(),
                                           default=datetime.utcnow)
-    failed_login_attempts = db.Column(db.Integer)
+    failed_login_attempts = db.Column(db.Integer, default=0)
     locked_out = db.Column(db.Boolean, default=False)
 
     def __init__(self, **kwargs):
@@ -88,7 +94,33 @@ class User(UserMixin, db.Model):
         self.update_auth_token()
 
     def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        if not AccountPolicy.LOCKOUT_POLICY_ENABLED:
+            return check_password_hash(self.password_hash, password)
+        if self.locked_out:
+            return False
+        if check_password_hash(self.password_hash, password):
+            self.last_failed_login_attempt = None
+            self.failed_login_attempts = 0
+            db.session.add(self)
+            return True
+        if self.last_failed_login_attempt:
+            if ((datetime.utcnow() - self.last_failed_login_attempt) >
+                    AccountPolicy.RESET_THRESHOLD_AFTER):
+                self.failed_login_attempts = 0
+        self.last_failed_login_attempt = datetime.utcnow()
+        self.failed_login_attempts += 1
+        if self.failed_login_attempts == AccountPolicy.LOCKOUT_THRESHOLD:
+            self.locked_out = True
+            # Reset password, which in turn will update the auth token,
+            # thus invalidating any other sessions for this user account.
+            self.password = current_app.config['SECRET_KEY']
+        db.session.add(self)
+        return False
+
+    def unlock(self):
+        self.locked_out = False
+        self.failed_login_attempts = 0
+        self.last_failed_login_attempt = None
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
@@ -213,6 +245,7 @@ login_manager.anonymous_user = AnonymousUser
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 @login_manager.token_loader
 def load_user_from_signed_token(signed_token):

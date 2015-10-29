@@ -1,8 +1,8 @@
 import unittest
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import create_app, db
-from app.models import User, AnonymousUser, Role, Permission
+from app.models import User, AnonymousUser, Role, Permission, AccountPolicy
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -165,11 +165,48 @@ class UserModelTestCase(unittest.TestCase):
     def test_auth_token_changes_when_password_is_updated(self):
         u = User(email='john@example.com', username='john', password='cat')
         old_auth = u.auth_token
-        u.password = 'dog'
+        u.password = 'cat'
         self.assertNotEqual(old_auth, u.auth_token)
 
     def test_auth_token_changes_when_username_is_updated(self):
         u = User(email='john@example.com', username='john', password='cat')
         old_auth = u.auth_token
         u.change_username('cooldude')
+        self.assertNotEqual(old_auth, u.auth_token)
+
+    def test_new_user_account_not_locked_out(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        db.session.add(u)
+        db.session.commit()
+        self.assertFalse(u.locked_out)
+
+    def test_account_lockout_threshold(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        db.session.add(u)
+        db.session.commit()
+        for i in range(AccountPolicy.LOCKOUT_THRESHOLD):
+            u.verify_password('dog')
+        self.assertTrue(u.locked_out)
+
+    def test_account_lockout_reset_duration(self):
+        seconds = 3
+        AccountPolicy.RESET_THRESHOLD_AFTER = timedelta(seconds=seconds)
+        u = User(email='john@example.com', username='john', password='cat')
+        db.session.add(u)
+        db.session.commit()
+        for i in range(AccountPolicy.LOCKOUT_THRESHOLD - 1):
+            u.verify_password('dog')
+        time.sleep(seconds)
+        u.verify_password('dog')
+        self.assertFalse(u.locked_out)
+        self.assertEquals(u.failed_login_attempts, 1)
+
+    def test_auth_token_changes_after_lockout(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        db.session.add(u)
+        db.session.commit()
+        old_auth = u.auth_token
+        for i in range(AccountPolicy.LOCKOUT_THRESHOLD):
+            u.verify_password('dog')
+        self.assertTrue(u.locked_out)
         self.assertNotEqual(old_auth, u.auth_token)

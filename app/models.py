@@ -63,6 +63,10 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     auth_token = db.Column(db.String(128), unique=True, index=True)
+    last_failed_login_attempt = db.Column(db.DateTime(),
+                                          default=datetime.utcnow)
+    failed_login_attempts = db.Column(db.Integer)
+    locked_out = db.Column(db.Boolean, default=False)
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)

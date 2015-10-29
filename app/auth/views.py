@@ -91,7 +91,7 @@ def register():
                    'auth/email/confirm', user=user, token=token)
         flash('Check your inbox! A confirmation email has been sent.',
               FlashCategory.INFO)
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('main.index'))
     return render_template('auth/register.html', form=form)
 
 

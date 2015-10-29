@@ -213,6 +213,7 @@ def load_user(user_id):
 @login_manager.token_loader
 def load_user_from_signed_token(signed_token):
     s = Signer(current_app.config['SECRET_KEY'])
+    auth_token = None
     try:
         auth_token = s.unsign(signed_token)
     except:

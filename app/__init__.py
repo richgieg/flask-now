@@ -13,6 +13,7 @@ db = SQLAlchemy()
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+login_manager.refresh_view = 'auth.reauthenticate'
 
 
 def create_app(config_name):

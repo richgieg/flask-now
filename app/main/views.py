@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, abort, flash
-from flask.ext.login import login_required, current_user
+from flask.ext.login import login_required, current_user, fresh_login_required
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm
 from .. import db
@@ -29,7 +29,7 @@ def users():
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 def edit_profile():
     form = EditProfileForm()
     if form.validate_on_submit():
@@ -46,7 +46,7 @@ def edit_profile():
 
 
 @main.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 @admin_required
 def edit_profile_admin(id):
     user = User.query.get_or_404(id)
@@ -69,4 +69,4 @@ def edit_profile_admin(id):
     form.name.data = user.name
     form.location.data = user.location
     form.about_me.data = user.about_me
-    return render_template('edit_profile.html', form=form, user=user)
+    return render_template('edit_profile_admin.html', form=form, user=user)

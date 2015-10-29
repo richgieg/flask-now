@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% set page_title = 'Edit Your Profile' %}
+{% set page_title = 'Verify Your Password' %}
 
 {% block page_content %}
 <div class="row">
     <div class="col-md-12">
         <div class="page-header">
-            <h1>Edit Your Profile</h1>
+            <h1>Verify Your Password</h1>
         </div>
     </div>
 </div>
 <div class="row">
     <div class="col-md-4">
         {{ wtf.quick_form(form) }}
+        <br>
+        <p>Forgot your password? <a href="{{ url_for('auth.password_reset_request') }}">Click here to reset it</a>.</p>
     </div>
 </div>
 {% endblock %}

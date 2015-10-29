@@ -1,7 +1,7 @@
 from urlparse import urlparse, urlunparse
 from flask import render_template, redirect, request, url_for, flash, session
 from flask.ext.login import login_user, logout_user, login_required, \
-    current_user
+    current_user, fresh_login_required, confirm_login, login_fresh
 from . import auth
 from .. import db, login_manager
 from ..models import User
@@ -9,7 +9,7 @@ from ..email import send_email
 from ..flash_category import FlashCategory
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm, \
-    ChangeUsernameForm
+    ChangeUsernameForm, ReauthenticationForm
 
 
 login_manager.login_message = 'Please log in to access this page.'
@@ -17,7 +17,7 @@ login_manager.login_message_category = FlashCategory.INFO
 login_manager.needs_refresh_message = (
     'To protect your account, please reauthenticate to access this page.'
 )
-login_manager.needs_refresh_message_category = FlashCategory.WARNING
+login_manager.needs_refresh_message_category = FlashCategory.INFO
 
 
 @auth.before_app_request
@@ -54,6 +54,19 @@ def login():
             return form.redirect('main.index')
         flash('Invalid username or password.', FlashCategory.DANGER)
     return render_template('auth/login.html', form=form)
+
+
+@auth.route('/reauthenticate', methods=['GET', 'POST'])
+def reauthenticate():
+    if not current_user.is_authenticated or login_fresh():
+        return redirect(url_for('main.index'))
+    form = ReauthenticationForm()
+    if form.validate_on_submit():
+        if current_user.verify_password(form.password.data):
+            confirm_login()
+            return form.redirect('main.index')
+        flash('Invalid password.', FlashCategory.DANGER)
+    return render_template('auth/reauthenticate.html', form=form)
 
 
 @auth.route('/logout')
@@ -107,7 +120,7 @@ def resend_confirmation():
 
 
 @auth.route('/change-username', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 def change_username():
     form = ChangeUsernameForm()
     if form.validate_on_submit():
@@ -123,7 +136,7 @@ def change_username():
 
 
 @auth.route('/change-password', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 def change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
@@ -176,7 +189,7 @@ def password_reset(token):
 
 
 @auth.route('/change-email', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 def change_email_request():
     form = ChangeEmailForm()
     if form.validate_on_submit():
@@ -196,7 +209,7 @@ def change_email_request():
 
 
 @auth.route('/change-email/<token>')
-@login_required
+@fresh_login_required
 def change_email(token):
     if current_user.change_email(token):
         session['auth_token'] = current_user.auth_token

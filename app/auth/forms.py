@@ -62,6 +62,11 @@ class LoginForm(RedirectForm):
     submit = SubmitField('Log In')
 
 
+class ReauthenticationForm(RedirectForm):
+    password = PasswordField('Password', validators=[Required()])
+    submit = SubmitField('Submit')
+
+
 class RegistrationForm(Form):
     email = StringField('Email', validators=[Required(), Length(1, 64),
                                            Email()])

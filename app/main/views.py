@@ -5,6 +5,7 @@ from .forms import EditProfileForm, EditProfileAdminForm
 from .. import db
 from ..models import Role, User
 from ..decorators import admin_required
+from ..flash_category import FlashCategory
 
 
 @main.route('/')
@@ -36,7 +37,7 @@ def edit_profile():
         current_user.location = form.location.data
         current_user.about_me = form.about_me.data
         db.session.add(current_user)
-        flash('Your profile has been updated.')
+        flash('Your profile has been updated.', FlashCategory.SUCCESS)
         return redirect(url_for('.user', username=current_user.username))
     form.name.data = current_user.name
     form.location.data = current_user.location
@@ -59,7 +60,7 @@ def edit_profile_admin(id):
         user.location = form.location.data
         user.about_me = form.about_me.data
         db.session.add(user)
-        flash('The profile has been updated.')
+        flash('The profile has been updated.', FlashCategory.SUCCESS)
         return redirect(url_for('.user', username=user.username))
     form.email.data = user.email
     form.username.data = user.username

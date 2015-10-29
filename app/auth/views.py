@@ -9,6 +9,7 @@ from ..email import send_email
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm, \
     ChangeUsernameForm
+from ..flash_category import FlashCategory
 
 
 @auth.before_app_request
@@ -17,7 +18,7 @@ def before_request():
         current_user.ping()
         if not current_user.verify_auth_token(session.get('auth_token')):
             logout_user()
-            flash('Your session has expired.')
+            flash('Your session has expired.', FlashCategory.DANGER)
             return redirect(url_for('auth.login'))
         if (not current_user.confirmed and
                 request.endpoint[:5] != 'auth.' and
@@ -43,7 +44,7 @@ def login():
             login_user(user, form.remember_me.data)
             session['auth_token'] = user.auth_token
             return form.redirect('main.index')
-        flash('Invalid username or password.')
+        flash('Invalid username or password.', FlashCategory.DANGER)
     return render_template('auth/login.html', form=form)
 
 
@@ -51,7 +52,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('You have logged out.')
+    flash('You have logged out.', FlashCategory.SUCCESS)
     return redirect(url_for('main.index'))
 
 
@@ -67,7 +68,8 @@ def register():
         token = user.generate_confirmation_token()
         send_email(user.email, 'Confirm Your Account',
                    'auth/email/confirm', user=user, token=token)
-        flash('Check your inbox! A confirmation email has been sent.')
+        flash('Check your inbox! A confirmation email has been sent.',
+              FlashCategory.INFO)
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
 
@@ -78,9 +80,11 @@ def confirm(token):
     if current_user.confirmed:
         return redirect(url_for('main.index'))
     if current_user.confirm(token):
-        flash('Your account is confirmed. Thank you!')
+        flash('Your account is confirmed. Thank you!',
+              FlashCategory.SUCCESS)
     else:
-        flash('The confirmation link is invalid or has expired.')
+        flash('The confirmation link is invalid or has expired.',
+              FlashCategory.DANGER)
     return redirect(url_for('main.index'))
 
 
@@ -90,7 +94,7 @@ def resend_confirmation():
     token = current_user.generate_confirmation_token()
     send_email(current_user.email, 'Confirm Your Account',
                'auth/email/confirm', user=current_user, token=token)
-    flash('A new confirmation email has been sent.')
+    flash('A new confirmation email has been sent.', FlashCategory.INFO)
     return redirect(url_for('main.index'))
 
 
@@ -102,11 +106,11 @@ def change_username():
         if current_user.verify_password(form.password.data):
             current_user.change_username(form.username.data)
             session['auth_token'] = current_user.auth_token
-            flash('Your username has been updated.')
+            flash('Your username has been updated.', FlashCategory.SUCCESS)
             return redirect(url_for('main.user',
                                     username=current_user.username))
         else:
-            flash('Invalid password.')
+            flash('Invalid password.', FlashCategory.DANGER)
     return render_template("auth/change_username.html", form=form)
 
 
@@ -119,11 +123,11 @@ def change_password():
             current_user.password = form.password.data
             db.session.add(current_user)
             session['auth_token'] = current_user.auth_token
-            flash('Your password has been updated.')
+            flash('Your password has been updated.', FlashCategory.SUCCESS)
             return redirect(url_for('main.user',
                                     username=current_user.username))
         else:
-            flash('Invalid password.')
+            flash('Invalid password.', FlashCategory.DANGER)
     return render_template("auth/change_password.html", form=form)
 
 
@@ -141,7 +145,7 @@ def password_reset_request():
                        user=user, token=token,
                        next=request.args.get('next'))
         flash('An email with instructions for resetting your password has been '
-              'sent.')
+              'sent.', FlashCategory.INFO)
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
 
@@ -156,7 +160,7 @@ def password_reset(token):
         if user is None:
             return redirect(url_for('main.index'))
         if user.reset_password(token, form.password.data):
-            flash('Your password has been updated.')
+            flash('Your password has been updated.', FlashCategory.SUCCESS)
             return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('main.index'))
@@ -175,11 +179,11 @@ def change_email_request():
                        'auth/email/change_email',
                        user=current_user, token=token)
             flash('An email with instructions for confirming your new email '
-                  'address has been sent.')
+                  'address has been sent.', FlashCategory.INFO)
             return redirect(url_for('main.user',
                                     username=current_user.username))
         else:
-            flash('Invalid password.')
+            flash('Invalid password.', FlashCategory.DANGER)
     return render_template("auth/change_email.html", form=form)
 
 
@@ -188,8 +192,9 @@ def change_email_request():
 def change_email(token):
     if current_user.change_email(token):
         session['auth_token'] = current_user.auth_token
-        flash('Your email address has been updated.')
+        flash('Your email address has been updated.',
+              FlashCategory.SUCCESS)
     else:
-        flash('Invalid request.')
+        flash('Invalid request.', FlashCategory.DANGER)
     return redirect(url_for('main.user',
                             username=current_user.username))

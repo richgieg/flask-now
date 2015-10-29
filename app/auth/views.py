@@ -3,13 +3,21 @@ from flask import render_template, redirect, request, url_for, flash, session
 from flask.ext.login import login_user, logout_user, login_required, \
     current_user
 from . import auth
-from .. import db
+from .. import db, login_manager
 from ..models import User
 from ..email import send_email
+from ..flash_category import FlashCategory
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm, \
     ChangeUsernameForm
-from ..flash_category import FlashCategory
+
+
+login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message_category = FlashCategory.INFO
+login_manager.needs_refresh_message = (
+    'To protect your account, please reauthenticate to access this page.'
+)
+login_manager.needs_refresh_message_category = FlashCategory.WARNING
 
 
 @auth.before_app_request

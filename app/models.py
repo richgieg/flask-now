@@ -73,6 +73,7 @@ class User(UserMixin, db.Model):
                                           default=datetime.utcnow)
     failed_login_attempts = db.Column(db.Integer, default=0)
     locked_out = db.Column(db.Boolean, default=False)
+    locked_out_hard = db.Column(db.Boolean, default=False)
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -110,17 +111,34 @@ class User(UserMixin, db.Model):
         self.last_failed_login_attempt = datetime.utcnow()
         self.failed_login_attempts += 1
         if self.failed_login_attempts == AccountPolicy.LOCKOUT_THRESHOLD:
-            self.locked_out = True
-            # Reset password, which in turn will update the auth token,
-            # thus invalidating any other sessions for this user account.
-            self.password = current_app.config['SECRET_KEY']
+            self.lock()
         db.session.add(self)
         return False
 
+    def lock(self):
+        self.locked_out = True
+        # Generate a new random auth token, which will invalidate
+        # any other active sessions for this user account.
+        self.randomize_auth_token()
+        db.session.add(self)
+
     def unlock(self):
+        if self.locked_out_hard:
+            return False
         self.locked_out = False
         self.failed_login_attempts = 0
         self.last_failed_login_attempt = None
+        db.session.add(self)
+        return True
+
+    def lock_hard(self):
+        self.lock()
+        self.locked_out_hard = True
+        db.session.add(self)
+
+    def unlock_hard(self):
+        self.locked_out_hard = False
+        return self.unlock()
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
@@ -216,6 +234,10 @@ class User(UserMixin, db.Model):
             return make_secure_token(self.email, self.username,
                                      self.password_hash)
         return None
+
+    def randomize_auth_token(self):
+        self.auth_token = make_secure_token(
+            generate_password_hash(current_app.config['SECRET_KEY']))
 
     def update_auth_token(self):
         self.auth_token = self.generate_auth_token()

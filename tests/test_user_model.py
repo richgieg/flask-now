@@ -210,3 +210,26 @@ class UserModelTestCase(unittest.TestCase):
             u.verify_password('dog')
         self.assertTrue(u.locked_out)
         self.assertNotEqual(old_auth, u.auth_token)
+
+    def test_account_unlock_succeeds(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        db.session.add(u)
+        db.session.commit()
+        u.lock()
+        self.assertTrue(u.unlock())
+
+    def test_account_unlock_fails_if_locked_hard(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        db.session.add(u)
+        db.session.commit()
+        u.lock_hard()
+        self.assertFalse(u.unlock())
+
+    def test_account_unlock_hard_succeeds_if_locked_hard(self):
+        u = User(email='john@example.com', username='john', password='cat')
+        db.session.add(u)
+        db.session.commit()
+        u.lock_hard()
+        self.assertTrue(u.unlock_hard())
+        self.assertFalse(u.locked_out)
+        self.assertFalse(u.locked_out_hard)

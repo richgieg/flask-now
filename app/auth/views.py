@@ -24,6 +24,8 @@ def verify_password(user, password):
     is_valid_password = user.verify_password(password)
     if user.locked_out:
         session['_locked'] = True
+    if user.locked_out_hard:
+        session['_locked_hard'] = True
     return is_valid_password
 
 
@@ -52,6 +54,8 @@ def after_request(response):
 @auth.route('/locked')
 def locked():
     if session.pop('_locked', None):
+        if session.pop('_locked_hard', None):
+            return render_template('auth/locked_hard.html')
         return render_template('auth/locked.html')
     return redirect(url_for('auth.login'))
 
@@ -207,8 +211,10 @@ def password_reset(token):
             return redirect(url_for('main.index'))
         if user.reset_password(token, form.password.data):
             if user.locked_out:
-                user.unlock()
-                flash_it(AuthMessages.ACCOUNT_UNLOCKED)
+                if user.unlock():
+                    flash_it(AuthMessages.ACCOUNT_UNLOCKED)
+                else:
+                    flash_it(AuthMessages.ACCOUNT_NOT_UNLOCKED)
             else:
                 flash_it(AuthMessages.PASSWORD_UPDATED)
             return redirect(url_for('auth.login'))

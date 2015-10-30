@@ -31,6 +31,10 @@ class AuthMessages:
         'Your account is confirmed',
         FlashCategory.SUCCESS
     )
+    ACCOUNT_NOT_UNLOCKED = (
+        'Your account is still locked. Contact a site administrator.',
+        FlashCategory.DANGER
+    )
     ACCOUNT_UNLOCKED = (
         'Your account is unlocked',
         FlashCategory.SUCCESS

@@ -171,8 +171,8 @@ def change_password():
             db.session.add(current_user)
             session['auth_token'] = current_user.auth_token
             flash_it(AuthMessages.PASSWORD_UPDATED)
-            return redirect(url_for('main.user',
-                                    username=current_user.username))
+            return form.redirect(url_for('main.user',
+                                         username=current_user.username))
         else:
             flash_it(AuthMessages.INVALID_PASSWORD)
     return render_template("auth/change_password.html", form=form)
@@ -229,8 +229,8 @@ def change_email_request():
                        'auth/email/change_email',
                        user=current_user, token=token)
             flash_it(AuthMessages.EMAIL_CHANGE_REQUEST)
-            return redirect(url_for('main.user',
-                                    username=current_user.username))
+            return form.redirect(url_for('main.user',
+                                         username=current_user.username))
         else:
             flash_it(AuthMessages.INVALID_PASSWORD)
     return render_template("auth/change_email.html", form=form)

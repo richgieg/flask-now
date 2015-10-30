@@ -101,7 +101,7 @@ class ChangeUsernameForm(Form):
             raise ValidationError('Username already in use.')
 
 
-class ChangePasswordForm(Form):
+class ChangePasswordForm(RedirectForm):
     old_password = PasswordField('Old Password', validators=[Required()])
     password = PasswordField('New Password', validators=[
         Required(), EqualTo('password2', message='Passwords must match.')])
@@ -128,7 +128,7 @@ class PasswordResetForm(Form):
             raise ValidationError('Unknown email address.')
 
 
-class ChangeEmailForm(Form):
+class ChangeEmailForm(RedirectForm):
     email = StringField('New Email', validators=[Required(), Length(1, 64),
                                                  Email()])
     password = PasswordField('Password', validators=[Required()])

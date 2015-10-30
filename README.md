@@ -2,9 +2,8 @@
 **Use this starter kit to quickly create Bootstrap-enabled Flask web applications
 with built-in user management and email functionality.**
 
-This project is based on examples from the book ["Flask Web Development" by
-Miguel Grinberg](http://flaskbook.com/) as well as code from his corresponding
-Flask application called [Flasky](http://github.com/miguelgrinberg/flasky).
+I became inspired to start this project as I was working through the book [Flask Web Development](http://flaskbook.com/) by [Miguel Grinberg](http://blog.miguelgrinberg.com/). I wanted to have a template I could utilize to quickly build new web applications, without having to worry about the details of user management and security. Starting with code from this book's corresponding
+Flask application called [Flasky](http://github.com/miguelgrinberg/flasky), this project was born. If you want to learn about Flask, I highly recommend Miguel's book. If you enjoy working with Flask and you want a codebase to spin up a user-based web application quickly, I hope this project is useful to you. A huge thanks goes out to the Flask community and all the Flask extensions utilized in this project!
 
 ##Prerequisites
 - Linux OS (might work on Windows with some minor tweaking)

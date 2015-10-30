@@ -4,7 +4,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    # Custom app config.
+    ###########################################################################
+    # [ Custom app config ]
+    ###########################################################################
     APP_TITLE = 'WebApp'
     APP_MAIL_NAME = '%s Admin' % APP_TITLE
     APP_MAIL_ADDRESS = 'webapp@example.com'
@@ -16,22 +18,35 @@ class Config:
     # A value of 0 means unlimited.
     APP_MAX_USERS = 2
 
-    # Flask config.
+    ###########################################################################
+    # [ Flask config ]
+    ###########################################################################
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
 
-    # Flask-Login config.
-    SESSION_PROTECTION = None
+    ###########################################################################
+    # [ Flask-Login config ]
+    ###########################################################################
+    # Ensures that the "remember me" cookie isn't accessible by
+    # client-sides scripts.
     REMEMBER_COOKIE_HTTPONLY = True
+    # Time-to-live for the "remember me" cookie.
     REMEMBER_COOKIE_DURATION = timedelta(days=365)
+    # Must be disabled for the application's security layer to
+    # function properly.
+    SESSION_PROTECTION = None
 
-    # Flask-Mail config.
+    ###########################################################################
+    # [ Flask-Mail config ]
+    ###########################################################################
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
-    # Flask-SQLAlchemy config.
+    ###########################################################################
+    # [ Flask-SQLAlchemy config ]
+    ###########################################################################
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -41,33 +56,49 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    # Flask config.
+    ###########################################################################
+    # [ Flask config ]
+    ###########################################################################
     DEBUG = True
 
-    # Flask-SQLAlchemy config.
+    ###########################################################################
+    # [ Flask-SQLAlchemy config ]
+    ###########################################################################
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
 
 class TestingConfig(Config):
-    # Flask config.
+    ###########################################################################
+    # [ Flask config ]
+    ###########################################################################
     TESTING = True
 
-    # Flask-SQLAlchemy config.
+    ###########################################################################
+    # [ Flask-SQLAlchemy config ]
+    ###########################################################################
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
 
 
 class ProductionConfig(Config):
-    # Flask config.
-    # Uncomment the following line if you're running HTTPS.
+    ###########################################################################
+    # [ Flask config ]
+    ###########################################################################
+    # Uncomment the following line if you're running HTTPS throughout
+    # your entire application.
     # SESSION_COOKIE_SECURE = True
 
-    # Flask-Login config.
-    # Uncomment the following line if you're running HTTPS.
+    ###########################################################################
+    # [ Flask-Login config ]
+    ###########################################################################
+    # Uncomment the following line if you're running HTTPS throughout
+    # your entire application.
     # REMEMBER_COOKIE_SECURE = True
 
-    # Flask-SQLAlchemy config.
+    ###########################################################################
+    # [ Flask-SQLAlchemy config ]
+    ###########################################################################
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 

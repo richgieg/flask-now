@@ -102,7 +102,7 @@ class ChangeUsernameForm(Form):
 
 
 class ChangePasswordForm(RedirectForm):
-    old_password = PasswordField('Current Password', validators=[Required()])
+    current_password = PasswordField('Current Password', validators=[Required()])
     password = PasswordField('New Password', validators=[Length(8, 64),
         Required(), EqualTo('password2', message='Passwords must match.')])
     password2 = PasswordField('Confirm New Password', validators=[Required()])

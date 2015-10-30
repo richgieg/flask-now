@@ -177,7 +177,7 @@ def change_username():
 def change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
-        if verify_password(current_user, form.password.data):
+        if verify_password(current_user, form.current_password.data):
             current_user.password = form.password.data
             db.session.add(current_user)
             session['auth_token'] = current_user.auth_token

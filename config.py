@@ -11,7 +11,9 @@ class Config:
     APP_MAIL_SENDER = '%s <%s>' % (APP_MAIL_NAME, APP_MAIL_ADDRESS)
     APP_MAIL_SUBJECT_PREFIX = '[%s]' % APP_TITLE
     APP_ADMIN = os.environ.get('APP_ADMIN')
+    # Allow new users to register.
     APP_ALLOW_NEW_USERS = True
+    # A value of 0 means unlimited.
     APP_MAX_USERS = 2
 
     # Flask config.

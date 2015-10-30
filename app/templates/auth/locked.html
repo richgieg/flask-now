@@ -1,19 +1,22 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% set page_title = 'This Account Is Locked Out' %}
+{% set page_title = 'This Account Is Locked' %}
 
 {% block page_content %}
 <div class="row">
     <div class="col-md-12">
         <div class="page-header">
-            <h1>This Account Is Locked Out</h1>
+            <h1>This Account Is Locked</h1>
         </div>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-4">
-        <p>That's not good...<br><a href="{{ url_for('auth.password_reset_request') }}">Reset your password to unlock your account</a></p>
+    <div class="col-md-6">
+        <h3>Unfortunately, we can't let you in... :(</h3>
+        <br>
+        <p>You must reset your password to unlock your account.</p>
+        <p><a href="{{ url_for('auth.password_reset_request') }}">Reset your password</a></p>
     </div>
 </div>
 {% endblock %}

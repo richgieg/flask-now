@@ -74,7 +74,7 @@ class RegistrationForm(Form):
         Required(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
                                           'Usernames must have only letters, '
                                           'numbers, dots or underscores')])
-    password = PasswordField('Password', validators=[
+    password = PasswordField('Password', validators=[Length(8, 64),
         Required(), EqualTo('password2', message='Passwords must match.')])
     password2 = PasswordField('Confirm password', validators=[Required()])
     submit = SubmitField('Register')
@@ -102,8 +102,8 @@ class ChangeUsernameForm(Form):
 
 
 class ChangePasswordForm(RedirectForm):
-    old_password = PasswordField('Old Password', validators=[Required()])
-    password = PasswordField('New Password', validators=[
+    old_password = PasswordField('Current Password', validators=[Required()])
+    password = PasswordField('New Password', validators=[Length(8, 64),
         Required(), EqualTo('password2', message='Passwords must match.')])
     password2 = PasswordField('Confirm New Password', validators=[Required()])
     submit = SubmitField('Update Password')
@@ -118,7 +118,7 @@ class PasswordResetRequestForm(Form):
 class PasswordResetForm(Form):
     email = StringField('Email', validators=[Required(), Length(1, 64),
                                              Email()])
-    password = PasswordField('New Password', validators=[
+    password = PasswordField('New Password', validators=[Length(8, 64),
         Required(), EqualTo('password2', message='Passwords must match.')])
     password2 = PasswordField('Confirm Password', validators=[Required()])
     submit = SubmitField('Reset Password')

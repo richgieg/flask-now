@@ -102,7 +102,6 @@ class User(UserMixin, db.Model):
         if check_password_hash(self.password_hash, password):
             self.last_failed_login_attempt = None
             self.failed_login_attempts = 0
-            db.session.add(self)
             return True
         if self.last_failed_login_attempt:
             if ((datetime.utcnow() - self.last_failed_login_attempt) >
@@ -112,7 +111,6 @@ class User(UserMixin, db.Model):
         self.failed_login_attempts += 1
         if self.failed_login_attempts == AccountPolicy.LOCKOUT_THRESHOLD:
             self.lock()
-        db.session.add(self)
         return False
 
     def lock(self):
@@ -120,7 +118,6 @@ class User(UserMixin, db.Model):
         # Generate a new random auth token, which will invalidate
         # any other active sessions for this user account.
         self.randomize_auth_token()
-        db.session.add(self)
 
     def unlock(self):
         if self.locked_out_hard:
@@ -128,13 +125,11 @@ class User(UserMixin, db.Model):
         self.locked_out = False
         self.failed_login_attempts = 0
         self.last_failed_login_attempt = None
-        db.session.add(self)
         return True
 
     def lock_hard(self):
         self.lock()
         self.locked_out_hard = True
-        db.session.add(self)
 
     def unlock_hard(self):
         self.locked_out_hard = False
@@ -153,7 +148,6 @@ class User(UserMixin, db.Model):
         if data.get('confirm') != self.id:
             return False
         self.confirmed = True
-        db.session.add(self)
         return True
 
     def generate_reset_token(self, expiration=3600):
@@ -169,7 +163,6 @@ class User(UserMixin, db.Model):
         if data.get('reset') != self.id:
             return False
         self.password = new_password
-        db.session.add(self)
         return True
 
     def generate_email_change_token(self, new_email, expiration=3600):
@@ -192,13 +185,11 @@ class User(UserMixin, db.Model):
         self.email = new_email
         self.update_avatar_hash()
         self.update_auth_token()
-        db.session.add(self)
         return True
 
     def change_username(self, username):
         self.username = username
         self.update_auth_token()
-        db.session.add(self)
 
     def can(self, permissions):
         return self.role is not None and \
@@ -209,7 +200,6 @@ class User(UserMixin, db.Model):
 
     def ping(self):
         self.last_seen = datetime.utcnow()
-        db.session.add(self)
 
     def gravatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:

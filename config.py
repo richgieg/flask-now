@@ -5,7 +5,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     ###########################################################################
-    # [ Custom app config ]
+    # [ Application ]
     ###########################################################################
     APP_TITLE = 'WebApp'
     APP_MAIL_NAME = '%s Admin' % APP_TITLE
@@ -19,12 +19,12 @@ class Config:
     APP_MAX_USERS = 2
 
     ###########################################################################
-    # [ Flask config ]
+    # [ Flask ]
     ###########################################################################
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
 
     ###########################################################################
-    # [ Flask-Login config ]
+    # [ Flask-Login ]
     ###########################################################################
     # Ensures that the "remember me" cookie isn't accessible by
     # client-sides scripts.
@@ -36,7 +36,7 @@ class Config:
     SESSION_PROTECTION = None
 
     ###########################################################################
-    # [ Flask-Mail config ]
+    # [ Flask-Mail ]
     ###########################################################################
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
@@ -45,7 +45,7 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
     ###########################################################################
-    # [ Flask-SQLAlchemy config ]
+    # [ Flask-SQLAlchemy ]
     ###########################################################################
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -57,12 +57,12 @@ class Config:
 
 class DevelopmentConfig(Config):
     ###########################################################################
-    # [ Flask config ]
+    # [ Flask ]
     ###########################################################################
     DEBUG = True
 
     ###########################################################################
-    # [ Flask-SQLAlchemy config ]
+    # [ Flask-SQLAlchemy ]
     ###########################################################################
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
@@ -70,12 +70,12 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     ###########################################################################
-    # [ Flask config ]
+    # [ Flask ]
     ###########################################################################
     TESTING = True
 
     ###########################################################################
-    # [ Flask-SQLAlchemy config ]
+    # [ Flask-SQLAlchemy ]
     ###########################################################################
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
@@ -83,21 +83,21 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     ###########################################################################
-    # [ Flask config ]
+    # [ Flask ]
     ###########################################################################
     # Uncomment the following line if you're running HTTPS throughout
     # your entire application.
     # SESSION_COOKIE_SECURE = True
 
     ###########################################################################
-    # [ Flask-Login config ]
+    # [ Flask-Login ]
     ###########################################################################
     # Uncomment the following line if you're running HTTPS throughout
     # your entire application.
     # REMEMBER_COOKIE_SECURE = True
 
     ###########################################################################
-    # [ Flask-SQLAlchemy config ]
+    # [ Flask-SQLAlchemy ]
     ###########################################################################
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')

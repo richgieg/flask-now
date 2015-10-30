@@ -110,6 +110,13 @@ def logout():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
+    # TODO: Fix possible synchronization issue. If the current number of users
+    # is one less than APP_MAX_USERS, and two users happen to post back the
+    # completed registration form at the exact same time and both move beyond
+    # this check, is it possible that the number of users could be one greater
+    # than APP_MAX_USERS?
+    if not User.can_register():
+        return render_template('auth/register_disabled.html')
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(email=form.email.data,

@@ -85,6 +85,17 @@ class User(UserMixin, db.Model):
         self.update_avatar_hash()
         self.update_auth_token()
 
+    @staticmethod
+    def can_register():
+        if current_app.config['APP_ALLOW_NEW_USERS']:
+            if current_app.config['APP_MAX_USERS']:
+                return (
+                    db.session.query(User).count() <
+                        current_app.config['APP_MAX_USERS']
+                )
+            return True
+        return False
+
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')

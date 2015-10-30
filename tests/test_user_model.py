@@ -233,3 +233,17 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(u.unlock_hard())
         self.assertFalse(u.locked_out)
         self.assertFalse(u.locked_out_hard)
+
+    def test_user_registration_succeeds_up_to_max_users_then_fails(self):
+        for i in range(self.app.config['APP_MAX_USERS']):
+            self.assertTrue(User.can_register())
+            email = 'u%s@test.com' % i
+            username = 'u%s' % i
+            u = User(email=email, username=username, password='cat')
+            db.session.add(u)
+            db.session.commit()
+        self.assertFalse(User.can_register())
+
+    def test_user_registration_fails_when_not_allowing_new_users(self):
+        self.app.config['APP_ALLOW_NEW_USERS'] = False
+        self.assertFalse(User.can_register())

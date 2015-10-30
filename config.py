@@ -11,6 +11,8 @@ class Config:
     APP_MAIL_SENDER = '%s <%s>' % (APP_MAIL_NAME, APP_MAIL_ADDRESS)
     APP_MAIL_SUBJECT_PREFIX = '[%s]' % APP_TITLE
     APP_ADMIN = os.environ.get('APP_ADMIN')
+    APP_ALLOW_NEW_USERS = True
+    APP_MAX_USERS = 2
 
     # Flask config.
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'

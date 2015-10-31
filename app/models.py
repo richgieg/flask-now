@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import Signer, TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import Signer, TimedJSONWebSignatureSerializer as Serializer,\
+    SignatureExpired, BadSignature
 from flask import current_app, request, session
 from flask.ext.login import UserMixin, AnonymousUserMixin, make_secure_token
 from . import db, login_manager
@@ -27,21 +28,45 @@ class LogEventType(db.Model):
     name = db.Column(db.String(64), unique=True)
     events = db.relationship('LogEvent', backref='type')
     EVENT_TYPES = {
-        'log_in': 1,
-        'log_out': 2,
-        'register_account': 3,
-        'confirm_account': 4,
-        'reauthenticate': 5,
-        'remember_me_bad_auth_token': 6,
-        'remember_me_cookie_malformed': 7,
-        'remember_me_authenticated': 8,
-        'session_bad_auth_token': 9,
-        'incorrect_password': 10,
-        'incorrect_email': 11
+        'log_in': 1,                            #
+        'log_out': 2,                           #
+        'reauthenticate': 3,                    #
+        'incorrect_password': 4,                #
+        'incorrect_email': 5,                   #
+        'account_locked': 6,                    #
+        'account_locked_hard': 7,               #
+        'account_unlocked': 8,                  #
+        'account_unlocked_hard': 9,             #
+        'account_locked_login_attempt': 10,     #
+        'register_account': 11,                 #
+        'register_account_blocked': 12,         #
+        'confirm_account_request': 13,          #
+        'confirm_account_complete': 14,         #
+        'confirm_account_token_expired': 15,    #
+        'confirm_account_token_invalid': 16,    #
+        'confirm_account_user_id_spoof': 17,    #
+        'session_bad_auth_token': 18,           #
+        'remember_me_bad_auth_token': 19,       #
+        'remember_me_cookie_malformed': 20,     #
+        'remember_me_authenticated': 21,        #
+        'password_change': 22,                  #
+        'username_change': 23,                  #
+        'email_change_request': 24,             #
+        'email_change_complete': 25,            #
+        'email_change_token_expired': 26,       #
+        'email_change_token_invalid': 27,       #
+        'email_change_user_id_spoof': 28,       #
+        'password_reset_request': 29,           #
+        'password_reset_complete': 30,          #
+        'password_reset_token_expired': 31,     #
+        'password_reset_token_invalid': 32,     #
+        'password_reset_user_id_spoof': 33      #
     }
 
     @staticmethod
     def seed_event_types():
+        LogEventType.query.delete()
+        db.session.commit()
         for name, id in LogEventType.EVENT_TYPES.iteritems():
             event_type = LogEventType(id=id, name=name)
             db.session.add(event_type)
@@ -80,8 +105,10 @@ class LogEvent(db.Model):
         LogEvent._log(LogEventType.EVENT_TYPES['register_account'], user)
 
     @staticmethod
-    def confirm_account(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['confirm_account'], user)
+    def confirm_account_complete(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['confirm_account_complete'], user
+        )
 
     @staticmethod
     def reauthenticate(user):
@@ -112,6 +139,114 @@ class LogEvent(db.Model):
     @staticmethod
     def incorrect_email():
         LogEvent._log(LogEventType.EVENT_TYPES['incorrect_email'])
+
+    @staticmethod
+    def password_change(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['password_change'], user)
+
+    @staticmethod
+    def username_change(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['username_change'], user)
+
+    @staticmethod
+    def email_change_request(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['email_change_request'], user)
+
+    @staticmethod
+    def email_change_complete(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['email_change_complete'], user)
+
+    @staticmethod
+    def password_reset_request(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['password_reset_request'], user)
+
+    @staticmethod
+    def password_reset_complete(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['password_reset_complete'], user)
+
+    @staticmethod
+    def account_locked(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['account_locked'], user)
+
+    @staticmethod
+    def account_unlocked(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['account_unlocked'], user)
+
+    @staticmethod
+    def account_locked_hard(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['account_locked_hard'], user)
+
+    @staticmethod
+    def account_unlocked_hard(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['account_unlocked_hard'], user)
+
+    @staticmethod
+    def account_locked_login_attempt(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_locked_login_attempt'], user
+        )
+
+    @staticmethod
+    def confirm_account_token_expired(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['confirm_account_token_expired'], user
+        )
+
+    @staticmethod
+    def confirm_account_token_invalid(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['confirm_account_token_invalid'], user
+        )
+
+    @staticmethod
+    def confirm_account_user_id_spoof(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['confirm_account_user_id_spoof'], user
+        )
+
+    @staticmethod
+    def email_change_token_expired(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['email_change_token_expired'], user
+        )
+
+    @staticmethod
+    def email_change_token_invalid(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['email_change_token_invalid'], user
+        )
+
+    @staticmethod
+    def email_change_user_id_spoof(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['email_change_user_id_spoof'], user
+        )
+
+    @staticmethod
+    def password_reset_token_expired(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['password_reset_token_expired'], user
+        )
+
+    @staticmethod
+    def password_reset_token_invalid(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['password_reset_token_invalid'], user
+        )
+
+    @staticmethod
+    def password_reset_user_id_spoof(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['password_reset_user_id_spoof'], user
+        )
+
+    @staticmethod
+    def confirm_account_request(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['confirm_account_request'], user)
+
+    @staticmethod
+    def register_account_blocked():
+        LogEvent._log(LogEventType.EVENT_TYPES['register_account_blocked'])
 
     def __repr__(self):
         return '<LogEvent %r>' % self.type.name
@@ -184,14 +319,16 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def can_register():
-        if current_app.config['APP_ALLOW_NEW_USERS']:
-            if current_app.config['APP_MAX_USERS']:
+        if not current_app.config['APP_ALLOW_NEW_USERS']:
+            return False
+        else:
+            if not current_app.config['APP_MAX_USERS']:
+                return True
+            else:
                 return (
                     db.session.query(User).count() <
                         current_app.config['APP_MAX_USERS']
                 )
-            return True
-        return False
 
     @property
     def password(self):
@@ -201,6 +338,7 @@ class User(UserMixin, db.Model):
     def password(self, password):
         self.password_hash = generate_password_hash(password)
         self.update_auth_token()
+        LogEvent.password_change(self)
 
     def verify_password(self, password):
         if not AccountPolicy.LOCKOUT_POLICY_ENABLED:
@@ -210,6 +348,9 @@ class User(UserMixin, db.Model):
                 LogEvent.incorrect_password(self)
                 return False
         if self.locked_out:
+            if not check_password_hash(self.password_hash, password):
+                LogEvent.incorrect_password(self)
+            LogEvent.account_locked_login_attempt(self)
             return False
         if check_password_hash(self.password_hash, password):
             self.last_failed_login_attempt = None
@@ -231,6 +372,7 @@ class User(UserMixin, db.Model):
         # Generate a new random auth token, which will invalidate
         # any other active sessions for this user account.
         self.randomize_auth_token()
+        LogEvent.account_locked(self)
 
     def unlock(self):
         if self.locked_out_hard:
@@ -238,58 +380,80 @@ class User(UserMixin, db.Model):
         self.locked_out = False
         self.failed_login_attempts = 0
         self.last_failed_login_attempt = None
+        LogEvent.account_unlocked(self)
         return True
 
     def lock_hard(self):
         self.lock()
         self.locked_out_hard = True
+        LogEvent.account_locked_hard(self)
 
     def unlock_hard(self):
         self.locked_out_hard = False
+        LogEvent.account_unlocked_hard(self)
         return self.unlock()
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        LogEvent.confirm_account_request(self)
         return s.dumps({'confirm': self.id})
 
     def confirm(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except:
+        except SignatureExpired:
+            LogEvent.confirm_account_token_expired(self)
+            return False
+        except BadSignature:
+            LogEvent.confirm_account_token_invalid(self)
             return False
         if data.get('confirm') != self.id:
+            LogEvent.confirm_account_user_id_spoof(self)
             return False
         self.confirmed = True
-        LogEvent.confirm_account(self)
+        LogEvent.confirm_account_complete(self)
         return True
 
     def generate_reset_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        LogEvent.password_reset_request(self)
         return s.dumps({'reset': self.id})
 
     def reset_password(self, token, new_password):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except:
+        except SignatureExpired:
+            LogEvent.password_reset_token_expired(self)
+            return False
+        except BadSignature:
+            LogEvent.password_reset_token_invalid(self)
             return False
         if data.get('reset') != self.id:
+            LogEvent.password_reset_user_id_spoof(self)
             return False
         self.password = new_password
+        LogEvent.password_reset_complete(self)
         return True
 
     def generate_email_change_token(self, new_email, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        LogEvent.email_change_request(self)
         return s.dumps({'change_email': self.id, 'new_email': new_email})
 
     def change_email(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except:
+        except SignatureExpired:
+            LogEvent.email_change_token_expired(self)
+            return False
+        except BadSignature:
+            LogEvent.email_change_token_invalid(self)
             return False
         if data.get('change_email') != self.id:
+            LogEvent.email_change_user_id_spoof(self)
             return False
         new_email = data.get('new_email')
         if new_email is None:
@@ -299,11 +463,13 @@ class User(UserMixin, db.Model):
         self.email = new_email
         self.update_avatar_hash()
         self.update_auth_token()
+        LogEvent.email_change_complete(self)
         return True
 
     def change_username(self, username):
         self.username = username
         self.update_auth_token()
+        LogEvent.username_change(self)
 
     def can(self, permissions):
         return self.role is not None and \

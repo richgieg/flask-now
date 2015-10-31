@@ -122,6 +122,7 @@ def register():
     # this check, is it possible that the number of users could be one greater
     # than APP_MAX_USERS?
     if not User.can_register():
+        LogEvent.register_account_blocked()
         return render_template('auth/register_disabled.html')
     form = RegistrationForm()
     if form.validate_on_submit():

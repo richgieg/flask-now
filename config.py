@@ -8,10 +8,11 @@ class Config:
     # [ Application ]
     ###########################################################################
     APP_TITLE = 'WebApp'
-    APP_MAIL_NAME = '%s Admin' % APP_TITLE
-    APP_MAIL_ADDRESS = 'webapp@example.com'
+    APP_MAIL_NAME = '%s Support' % APP_TITLE
+    APP_MAIL_ADDRESS = 'support@webapp.com'
     APP_MAIL_SENDER = '%s <%s>' % (APP_MAIL_NAME, APP_MAIL_ADDRESS)
     APP_MAIL_SUBJECT_PREFIX = '[%s]' % APP_TITLE
+    # Email address for the primary site administrator user account.
     APP_ADMIN = os.environ.get('APP_ADMIN')
     # Allow new users to register.
     APP_ALLOW_NEW_USERS = True

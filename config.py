@@ -18,6 +18,8 @@ class Config:
     APP_ALLOW_NEW_USERS = True
     # A value of 0 means unlimited.
     APP_MAX_USERS = 2
+    # Toggles the logging of user events.
+    APP_EVENT_LOGGING = True
 
     ###########################################################################
     # [ Flask ]

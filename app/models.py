@@ -21,6 +21,102 @@ class Permission:
     ADMINISTER = 0x80
 
 
+class LogEventType(db.Model):
+    __tablename__ = 'log_event_types'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    events = db.relationship('LogEvent', backref='type')
+    EVENT_TYPES = {
+        'log_in': 1,
+        'log_out': 2,
+        'register_account': 3,
+        'confirm_account': 4,
+        'reauthenticate': 5,
+        'remember_me_bad_auth_token': 6,
+        'remember_me_cookie_malformed': 7,
+        'remember_me_authenticated': 8,
+        'session_bad_auth_token': 9,
+        'incorrect_password': 10,
+        'incorrect_email': 11
+    }
+
+    @staticmethod
+    def seed_event_types():
+        for name, id in LogEventType.EVENT_TYPES.iteritems():
+            event_type = LogEventType(id=id, name=name)
+            db.session.add(event_type)
+        db.session.commit()
+
+    def __repr__(self):
+        return '<LogEventType %r>' % self.name
+
+
+class LogEvent(db.Model):
+    __tablename__ = 'log_events'
+    id = db.Column(db.Integer, primary_key=True)
+    type_id = db.Column(db.Integer, db.ForeignKey('log_event_types.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    ip_address = db.Column(db.String(48))
+    logged_at = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    @staticmethod
+    def _log(type_id, user=None):
+        if current_app.config['APP_EVENT_LOGGING']:
+            event = LogEvent(type_id=type_id, user=user,
+                             ip_address=request.remote_addr)
+            db.session.add(event)
+            db.session.commit()
+
+    @staticmethod
+    def log_in(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['log_in'], user)
+
+    @staticmethod
+    def log_out(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['log_out'], user)
+
+    @staticmethod
+    def register_account(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['register_account'], user)
+
+    @staticmethod
+    def confirm_account(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['confirm_account'], user)
+
+    @staticmethod
+    def reauthenticate(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['reauthenticate'], user)
+
+    @staticmethod
+    def remember_me_bad_auth_token():
+        LogEvent._log(LogEventType.EVENT_TYPES['remember_me_bad_auth_token'])
+
+    @staticmethod
+    def remember_me_cookie_malformed():
+        LogEvent._log(LogEventType.EVENT_TYPES['remember_me_cookie_malformed'])
+
+    @staticmethod
+    def remember_me_authenticated(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['remember_me_authenticated'], user
+        )
+
+    @staticmethod
+    def session_bad_auth_token(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['session_bad_auth_token'], user)
+
+    @staticmethod
+    def incorrect_password(user):
+        LogEvent._log(LogEventType.EVENT_TYPES['incorrect_password'], user)
+
+    @staticmethod
+    def incorrect_email():
+        LogEvent._log(LogEventType.EVENT_TYPES['incorrect_email'])
+
+    def __repr__(self):
+        return '<LogEvent %r>' % self.type.name
+
+
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
@@ -74,6 +170,7 @@ class User(UserMixin, db.Model):
     failed_login_attempts = db.Column(db.Integer, default=0)
     locked_out = db.Column(db.Boolean, default=False)
     locked_out_hard = db.Column(db.Boolean, default=False)
+    log_events = db.relationship('LogEvent', backref='user')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -107,13 +204,18 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         if not AccountPolicy.LOCKOUT_POLICY_ENABLED:
-            return check_password_hash(self.password_hash, password)
+            if check_password_hash(self.password_hash, password):
+                return True
+            else:
+                LogEvent.incorrect_password(self)
+                return False
         if self.locked_out:
             return False
         if check_password_hash(self.password_hash, password):
             self.last_failed_login_attempt = None
             self.failed_login_attempts = 0
             return True
+        LogEvent.incorrect_password(self)
         if self.last_failed_login_attempt:
             if ((datetime.utcnow() - self.last_failed_login_attempt) >
                     AccountPolicy.RESET_THRESHOLD_AFTER):
@@ -159,6 +261,7 @@ class User(UserMixin, db.Model):
         if data.get('confirm') != self.id:
             return False
         self.confirmed = True
+        LogEvent.confirm_account(self)
         return True
 
     def generate_reset_token(self, expiration=3600):
@@ -282,7 +385,12 @@ def load_user_from_signed_token(signed_token):
         user = User.query.filter_by(auth_token=auth_token).first()
         if user:
             session['auth_token'] = user.auth_token
+            LogEvent.remember_me_authenticated(user)
             return user
+        else:
+            LogEvent.remember_me_bad_auth_token()
+    else:
+        LogEvent.remember_me_cookie_malformed()
     # This causes Flask-Login to clear the "remember me" cookie. This could
     # break if Flask-Login's internal implementation changes. A better way
     # should be implemented. Perhaps install an after_request hook.

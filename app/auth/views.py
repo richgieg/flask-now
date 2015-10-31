@@ -5,7 +5,7 @@ from flask.ext.login import login_user, logout_user, login_required, \
     current_user, fresh_login_required, confirm_login, login_fresh
 from . import auth
 from .. import db, login_manager
-from ..models import User
+from ..models import User, LogEvent
 from ..email import send_email
 from ..messages import AuthMessages, flash_it
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
@@ -34,6 +34,7 @@ def before_request():
     if current_user.is_authenticated:
         current_user.ping()
         if not current_user.verify_auth_token(session.get('auth_token')):
+            LogEvent.session_bad_auth_token(current_user)
             logout_user()
             flash_it(AuthMessages.SESSION_EXPIRED)
             return redirect(url_for('auth.login'))
@@ -77,7 +78,10 @@ def login():
         if user is not None and verify_password(user, form.password.data):
             login_user(user, form.remember_me.data)
             session['auth_token'] = user.auth_token
+            LogEvent.log_in(user)
             return form.redirect('main.index')
+        elif user is None:
+            LogEvent.incorrect_email()
         flash_it(AuthMessages.INVALID_CREDENTIALS)
     return render_template('auth/login.html', form=form)
 
@@ -93,6 +97,7 @@ def reauthenticate():
     if form.validate_on_submit():
         if verify_password(current_user, form.password.data):
             confirm_login()
+            LogEvent.reauthenticate(current_user)
             return form.redirect('main.index')
         flash_it(AuthMessages.INVALID_PASSWORD)
     return render_template('auth/reauthenticate.html', form=form)
@@ -101,6 +106,7 @@ def reauthenticate():
 @auth.route('/logout')
 @login_required
 def logout():
+    LogEvent.log_out(current_user)
     logout_user()
     flash_it(AuthMessages.LOG_OUT)
     return redirect(url_for('main.index'))
@@ -124,6 +130,7 @@ def register():
                     password=form.password.data)
         db.session.add(user)
         db.session.commit()
+        LogEvent.register_account(user)
         token = user.generate_confirmation_token()
         send_email(user.email, 'Confirm Your Account',
                    'auth/email/confirm', user=user, token=token)

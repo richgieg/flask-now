@@ -63,6 +63,10 @@ class AuthMessages:
         'Bad password',
         FlashCategory.DANGER
     )
+    INVALID_PASSWORD_RESET_LINK = (
+        'Password not updated due to invalid or expired token',
+        FlashCategory.DANGER
+    )
     LOG_OUT = (
         'You have logged out',
         FlashCategory.SUCCESS

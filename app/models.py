@@ -34,12 +34,12 @@ class LogEventType(db.Model):
         'reauthenticate': {'id': 3, 'context': 'info'},
         'incorrect_password': {'id': 4, 'context': 'warning'},
         'incorrect_email': {'id': 5, 'context': 'warning'},
-        'account_locked': {'id': 6, 'context': 'warning'},
-        'account_locked_hard': {'id': 7, 'context': 'warning'},
-        'account_unlocked': {'id': 8, 'context': 'info'},
-        'account_unlocked_hard': {'id': 9, 'context': 'info'},
+        'account_locked': {'id': 6, 'context': 'info'},
+        'account_unlocked': {'id': 7, 'context': 'success'},
+        'account_disabled': {'id': 8, 'context': 'info'},
+        'account_enabled': {'id': 9, 'context': 'success'},
         'account_locked_login_attempt': {'id': 10, 'context': 'warning'},
-        'register_account': {'id': 11, 'context': 'success'},
+        'register_account': {'id': 11, 'context': 'info'},
         'register_account_blocked': {'id': 12, 'context': 'info'},
         'confirm_account_request': {'id': 13, 'context': 'info'},
         'confirm_account_complete': {'id': 14, 'context': 'success'},
@@ -61,7 +61,12 @@ class LogEventType(db.Model):
         'password_reset_complete': {'id': 30, 'context': 'success'},
         'password_reset_token_expired': {'id': 31, 'context': 'warning'},
         'password_reset_token_invalid': {'id': 32, 'context': 'danger'},
-        'password_reset_user_id_spoof': {'id': 33, 'context': 'danger'}
+        'password_reset_user_id_spoof': {'id': 33, 'context': 'danger'},
+        'account_disabled_login_attempt': {'id': 34, 'context': 'warning'},
+        'account_locked_by_failed_logins': {'id': 35, 'context': 'danger'},
+        'password_reset_request_disabled_account': {
+            'id': 36, 'context': 'warning'
+        },
     }
 
     @staticmethod
@@ -223,16 +228,16 @@ class LogEvent(db.Model):
         )
 
     @staticmethod
-    def account_locked_hard(user):
+    def account_disabled(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['account_locked_hard']['id'],
+            LogEventType.EVENT_TYPES['account_disabled']['id'],
             user
         )
 
     @staticmethod
-    def account_unlocked_hard(user):
+    def account_enabled(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['account_unlocked_hard']['id'],
+            LogEventType.EVENT_TYPES['account_enabled']['id'],
             user
         )
 
@@ -240,6 +245,13 @@ class LogEvent(db.Model):
     def account_locked_login_attempt(user):
         LogEvent._log(
             LogEventType.EVENT_TYPES['account_locked_login_attempt']['id'],
+            user
+        )
+
+    @staticmethod
+    def account_disabled_login_attempt(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_disabled_login_attempt']['id'],
             user
         )
 
@@ -319,6 +331,21 @@ class LogEvent(db.Model):
             LogEventType.EVENT_TYPES['register_account_blocked']['id']
         )
 
+    @staticmethod
+    def account_locked_by_failed_logins(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_locked_by_failed_logins']['id'],
+            user
+        )
+
+    @staticmethod
+    def password_reset_request_disabled_account(user):
+        LogEvent._log(
+            (LogEventType.EVENT_TYPES
+                ['password_reset_request_disabled_account']['id']),
+            user
+        )
+
     def __repr__(self):
         return '<LogEvent %r>' % self.type.name
 
@@ -374,8 +401,8 @@ class User(UserMixin, db.Model):
     last_failed_login_attempt = db.Column(db.DateTime(),
                                           default=datetime.utcnow)
     failed_login_attempts = db.Column(db.Integer, default=0)
-    locked_out = db.Column(db.Boolean, default=False)
-    locked_out_hard = db.Column(db.Boolean, default=False)
+    _locked = db.Column(db.Boolean, default=False)
+    _disabled = db.Column(db.Boolean, default=False)
     log_events = db.relationship('LogEvent', backref='user')
 
     def __init__(self, **kwargs):
@@ -418,10 +445,13 @@ class User(UserMixin, db.Model):
             else:
                 LogEvent.incorrect_password(self)
                 return False
-        if self.locked_out:
+        if self.locked or self.disabled:
             if not check_password_hash(self.password_hash, password):
                 LogEvent.incorrect_password(self)
-            LogEvent.account_locked_login_attempt(self)
+            if self.locked:
+                LogEvent.account_locked_login_attempt(self)
+            if self.disabled:
+                LogEvent.account_disabled_login_attempt(self)
             return False
         if check_password_hash(self.password_hash, password):
             self.last_failed_login_attempt = None
@@ -435,34 +465,41 @@ class User(UserMixin, db.Model):
         self.last_failed_login_attempt = datetime.utcnow()
         self.failed_login_attempts += 1
         if self.failed_login_attempts == AccountPolicy.LOCKOUT_THRESHOLD:
-            self.lock()
+            self.locked = True
+            LogEvent.account_locked_by_failed_logins(self)
         return False
 
-    def lock(self):
-        self.locked_out = True
-        # Generate a new random auth token, which will invalidate
-        # any other active sessions for this user account.
-        self.randomize_auth_token()
-        LogEvent.account_locked(self)
+    @property
+    def locked(self):
+        return self._locked
 
-    def unlock(self):
-        if self.locked_out_hard:
-            return False
-        self.locked_out = False
-        self.failed_login_attempts = 0
-        self.last_failed_login_attempt = None
-        LogEvent.account_unlocked(self)
-        return True
+    @locked.setter
+    def locked(self, locked):
+        if locked and not self._locked:
+            self._locked = True
+            # Invalidate sessions and remember cookies.
+            self.randomize_auth_token()
+            LogEvent.account_locked(self)
+        elif not locked and self._locked:
+            self._locked = False
+            self.failed_login_attempts = 0
+            self.last_failed_login_attempt = None
+            LogEvent.account_unlocked(self)
 
-    def lock_hard(self):
-        self.lock()
-        self.locked_out_hard = True
-        LogEvent.account_locked_hard(self)
+    @property
+    def disabled(self):
+        return self._disabled
 
-    def unlock_hard(self):
-        self.locked_out_hard = False
-        LogEvent.account_unlocked_hard(self)
-        return self.unlock()
+    @disabled.setter
+    def disabled(self, disabled):
+        if disabled and not self._disabled:
+            self._disabled = True
+            # Invalidate sessions and remember cookies.
+            self.randomize_auth_token()
+            LogEvent.account_disabled(self)
+        elif not disabled and self._disabled:
+            self._disabled = False
+            LogEvent.account_enabled(self)
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)

@@ -23,10 +23,10 @@ login_manager.needs_refresh_message_category = AuthMessages.REFRESH_REQUIRED[1]
 
 def verify_password(user, password):
     is_valid_password = user.verify_password(password)
-    if user.locked_out:
+    if user.locked:
         session['_locked'] = True
-    if user.locked_out_hard:
-        session['_locked_hard'] = True
+    if user.disabled:
+        session['_disabled'] = True
     return is_valid_password
 
 
@@ -47,7 +47,10 @@ def before_request():
 
 @auth.after_app_request
 def after_request(response):
-    if session.get('_locked'):
+    if session.get('_disabled', None):
+        logout_user()
+        return make_response(redirect(url_for('auth.disabled')))
+    if session.get('_locked', None):
         logout_user()
         return make_response(redirect(url_for('auth.locked')))
     return response
@@ -56,9 +59,15 @@ def after_request(response):
 @auth.route('/locked')
 def locked():
     if session.pop('_locked', None):
-        if session.pop('_locked_hard', None):
-            return render_template('auth/locked_hard.html')
         return render_template('auth/locked.html')
+    return redirect(url_for('auth.login'))
+
+
+@auth.route('/disabled')
+def disabled():
+    if session.pop('_disabled', None):
+        session.pop('_locked', None)
+        return render_template('auth/disabled.html')
     return redirect(url_for('auth.login'))
 
 
@@ -206,12 +215,19 @@ def password_reset_request():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            token = user.generate_reset_token()
-            send_email(user.email, 'Reset Your Password',
-                       'auth/email/reset_password',
-                       user=user, token=token,
-                       next=request.args.get('next'))
-        flash_it(AuthMessages.PASSWORD_RESET_REQUEST)
+            if user.disabled:
+                flash_it(AuthMessages.PASSWORD_RESET_REQUEST_DISABLED_ACCOUNT)
+                LogEvent.password_reset_request_disabled_account(user)
+            else:
+                token = user.generate_reset_token()
+                send_email(user.email, 'Reset Your Password',
+                           'auth/email/reset_password',
+                           user=user, token=token,
+                           next=request.args.get('next'))
+                flash_it(AuthMessages.PASSWORD_RESET_REQUEST)
+        else:
+            # This is just to trick anyone guessing email addresses.
+            flash_it(AuthMessages.PASSWORD_RESET_REQUEST)
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
 
@@ -226,13 +242,10 @@ def password_reset(token):
         if user is None:
             return redirect(url_for('main.index'))
         if user.reset_password(token, form.password.data):
-            if user.locked_out:
-                if user.unlock():
-                    flash_it(AuthMessages.ACCOUNT_UNLOCKED)
-                else:
-                    flash_it(AuthMessages.ACCOUNT_NOT_UNLOCKED)
-            else:
-                flash_it(AuthMessages.PASSWORD_UPDATED)
+            flash_it(AuthMessages.PASSWORD_UPDATED)
+            if user.locked:
+                user.locked = False
+                flash_it(AuthMessages.ACCOUNT_UNLOCKED)
             return redirect(url_for('auth.login'))
         else:
             flash_it(AuthMessages.INVALID_PASSWORD_RESET_LINK)
@@ -269,6 +282,7 @@ def change_email(token):
         flash_it(AuthMessages.INVALID_CONFIRMATION_LINK)
     return redirect(url_for('main.user',
                             username=current_user.username))
+
 
 @auth.route('/event-log')
 @fresh_admin_or_404

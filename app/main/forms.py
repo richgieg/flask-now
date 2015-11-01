@@ -25,6 +25,7 @@ class EditProfileAdminForm(Form):
         Required(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
                                           'Usernames must have only letters, '
                                           'numbers, dots or underscores')])
+    disabled = BooleanField('Disabled')
     locked = BooleanField('Locked')
     confirmed = BooleanField('Confirmed')
     role = SelectField('Role', coerce=int)

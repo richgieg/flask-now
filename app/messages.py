@@ -31,10 +31,6 @@ class AuthMessages:
         'Your account is confirmed',
         FlashCategory.SUCCESS
     )
-    ACCOUNT_NOT_UNLOCKED = (
-        'Your account is still locked. Contact a site administrator.',
-        FlashCategory.DANGER
-    )
     ACCOUNT_UNLOCKED = (
         'Your account is unlocked',
         FlashCategory.SUCCESS
@@ -79,12 +75,16 @@ class AuthMessages:
         'Your password is updated',
         FlashCategory.SUCCESS
         )
-    REFRESH_REQUIRED = (
-        'Verify your password to continue',
-        FlashCategory.INFO
-    )
     PASSWORD_RESET_REQUEST = (
         'Check your email for password reset instructions',
+        FlashCategory.INFO
+    )
+    PASSWORD_RESET_REQUEST_DISABLED_ACCOUNT = (
+        'Password reset not allowed for disabled accounts',
+        FlashCategory.INFO
+    )
+    REFRESH_REQUIRED = (
+        'Verify your password to continue',
         FlashCategory.INFO
     )
     SESSION_EXPIRED = (

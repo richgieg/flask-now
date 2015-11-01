@@ -178,7 +178,7 @@ class UserModelTestCase(unittest.TestCase):
         u = User(email='john@example.com', username='john', password='cat')
         db.session.add(u)
         db.session.commit()
-        self.assertFalse(u.locked_out)
+        self.assertFalse(u.locked)
 
     def test_account_lockout_threshold(self):
         u = User(email='john@example.com', username='john', password='cat')
@@ -186,7 +186,7 @@ class UserModelTestCase(unittest.TestCase):
         db.session.commit()
         for i in range(AccountPolicy.LOCKOUT_THRESHOLD):
             u.verify_password('dog')
-        self.assertTrue(u.locked_out)
+        self.assertTrue(u.locked)
 
     def test_account_lockout_reset_duration(self):
         seconds = 3
@@ -198,7 +198,7 @@ class UserModelTestCase(unittest.TestCase):
             u.verify_password('dog')
         time.sleep(seconds)
         u.verify_password('dog')
-        self.assertFalse(u.locked_out)
+        self.assertFalse(u.locked)
         self.assertEquals(u.failed_login_attempts, 1)
 
     def test_auth_token_changes_after_lockout(self):
@@ -208,31 +208,18 @@ class UserModelTestCase(unittest.TestCase):
         old_auth = u.auth_token
         for i in range(AccountPolicy.LOCKOUT_THRESHOLD):
             u.verify_password('dog')
-        self.assertTrue(u.locked_out)
+        self.assertTrue(u.locked)
         self.assertNotEqual(old_auth, u.auth_token)
 
     def test_account_unlock_succeeds(self):
         u = User(email='john@example.com', username='john', password='cat')
         db.session.add(u)
         db.session.commit()
-        u.lock()
-        self.assertTrue(u.unlock())
-
-    def test_account_unlock_fails_if_locked_hard(self):
-        u = User(email='john@example.com', username='john', password='cat')
-        db.session.add(u)
-        db.session.commit()
-        u.lock_hard()
-        self.assertFalse(u.unlock())
-
-    def test_account_unlock_hard_succeeds_if_locked_hard(self):
-        u = User(email='john@example.com', username='john', password='cat')
-        db.session.add(u)
-        db.session.commit()
-        u.lock_hard()
-        self.assertTrue(u.unlock_hard())
-        self.assertFalse(u.locked_out)
-        self.assertFalse(u.locked_out_hard)
+        for i in range(AccountPolicy.LOCKOUT_THRESHOLD):
+            u.verify_password('dog')
+        self.assertTrue(u.locked)
+        u.locked = False
+        self.assertFalse(u.locked)
 
     def test_user_registration_succeeds_up_to_max_users_then_fails(self):
         for i in range(self.app.config['APP_MAX_USERS']):

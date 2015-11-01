@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% set page_title = 'Event Log' %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="page-header">
+            <h1>Event Log</h1>
+        </div>
+    </div>
+</div>
+<div class="row no-gutter">
+    <div class="col-xs-6">
+        Showing the most recent <span class="badge">{{ events | length }}</span>
+        events
+    </div>
+    <div class="col-xs-6 text-right">
+        <a href="{{ url_for('.event_log', records=100) }}">100</a> |
+        <a href="{{ url_for('.event_log', records=250) }}">250</a> |
+        <a href="{{ url_for('.event_log', records=500) }}">500</a><br>
+    </div>
+</div>
+<br>
+<div class="row">
+    <div class="col-md-12">
+        <div class="table-responsive">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th class="col-xs-2">Date</th>
+                        <th class="col-xs-2">Time</th>
+                        <th class="col-xs-4">Event Type</th>
+                        <th class="col-xs-2">Username</th>
+                        <th class="col-xs-2">IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td>{{ event.logged_at.date() }}</td>
+                        <td>{{ event.logged_at.time() }}</td>
+                        <td>
+                            <span class="label label-{{ event.type.context }}">
+                                {{ event.type.name }}
+                            </span>
+                        </td>
+                        <td>{{ event.user.username or 'N/A' }}</td>
+                        <td>{{ event.ip_address }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

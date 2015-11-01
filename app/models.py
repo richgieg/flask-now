@@ -26,49 +26,51 @@ class LogEventType(db.Model):
     __tablename__ = 'log_event_types'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    context = db.Column(db.String(64))
     events = db.relationship('LogEvent', backref='type')
     EVENT_TYPES = {
-        'log_in': 1,                            #
-        'log_out': 2,                           #
-        'reauthenticate': 3,                    #
-        'incorrect_password': 4,                #
-        'incorrect_email': 5,                   #
-        'account_locked': 6,                    #
-        'account_locked_hard': 7,               #
-        'account_unlocked': 8,                  #
-        'account_unlocked_hard': 9,             #
-        'account_locked_login_attempt': 10,     #
-        'register_account': 11,                 #
-        'register_account_blocked': 12,         #
-        'confirm_account_request': 13,          #
-        'confirm_account_complete': 14,         #
-        'confirm_account_token_expired': 15,    #
-        'confirm_account_token_invalid': 16,    #
-        'confirm_account_user_id_spoof': 17,    #
-        'session_bad_auth_token': 18,           #
-        'remember_me_bad_auth_token': 19,       #
-        'remember_me_cookie_malformed': 20,     #
-        'remember_me_authenticated': 21,        #
-        'password_change': 22,                  #
-        'username_change': 23,                  #
-        'email_change_request': 24,             #
-        'email_change_complete': 25,            #
-        'email_change_token_expired': 26,       #
-        'email_change_token_invalid': 27,       #
-        'email_change_user_id_spoof': 28,       #
-        'password_reset_request': 29,           #
-        'password_reset_complete': 30,          #
-        'password_reset_token_expired': 31,     #
-        'password_reset_token_invalid': 32,     #
-        'password_reset_user_id_spoof': 33      #
+        'log_in': {'id': 1, 'context': 'info'},
+        'log_out': {'id': 2, 'context': 'info'},
+        'reauthenticate': {'id': 3, 'context': 'info'},
+        'incorrect_password': {'id': 4, 'context': 'warning'},
+        'incorrect_email': {'id': 5, 'context': 'warning'},
+        'account_locked': {'id': 6, 'context': 'warning'},
+        'account_locked_hard': {'id': 7, 'context': 'warning'},
+        'account_unlocked': {'id': 8, 'context': 'info'},
+        'account_unlocked_hard': {'id': 9, 'context': 'info'},
+        'account_locked_login_attempt': {'id': 10, 'context': 'warning'},
+        'register_account': {'id': 11, 'context': 'success'},
+        'register_account_blocked': {'id': 12, 'context': 'info'},
+        'confirm_account_request': {'id': 13, 'context': 'info'},
+        'confirm_account_complete': {'id': 14, 'context': 'success'},
+        'confirm_account_token_expired': {'id': 15, 'context': 'warning'},
+        'confirm_account_token_invalid': {'id': 16, 'context': 'danger'},
+        'confirm_account_user_id_spoof': {'id': 17, 'context': 'danger'},
+        'session_bad_auth_token': {'id': 18, 'context': 'warning'},
+        'remember_me_bad_auth_token': {'id': 19, 'context': 'warning'},
+        'remember_me_cookie_malformed': {'id': 20, 'context': 'danger'},
+        'remember_me_authenticated': {'id': 21, 'context': 'info'},
+        'password_change': {'id': 22, 'context': 'info'},
+        'username_change': {'id': 23, 'context': 'info'},
+        'email_change_request': {'id': 24, 'context': 'info'},
+        'email_change_complete': {'id': 25, 'context': 'success'},
+        'email_change_token_expired': {'id': 26, 'context': 'warning'},
+        'email_change_token_invalid': {'id': 27, 'context': 'danger'},
+        'email_change_user_id_spoof': {'id': 28, 'context': 'danger'},
+        'password_reset_request': {'id': 29, 'context': 'info'},
+        'password_reset_complete': {'id': 30, 'context': 'success'},
+        'password_reset_token_expired': {'id': 31, 'context': 'warning'},
+        'password_reset_token_invalid': {'id': 32, 'context': 'danger'},
+        'password_reset_user_id_spoof': {'id': 33, 'context': 'danger'}
     }
 
     @staticmethod
     def seed_event_types():
         LogEventType.query.delete()
         db.session.commit()
-        for name, id in LogEventType.EVENT_TYPES.iteritems():
-            event_type = LogEventType(id=id, name=name)
+        for name, data in LogEventType.EVENT_TYPES.iteritems():
+            event_type = LogEventType(id=data['id'], name=name,
+                                      context=data['context'])
             db.session.add(event_type)
         db.session.commit()
 
@@ -94,159 +96,228 @@ class LogEvent(db.Model):
 
     @staticmethod
     def log_in(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['log_in'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['log_in']['id'],
+            user
+        )
 
     @staticmethod
     def log_out(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['log_out'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['log_out']['id'],
+            user
+        )
 
     @staticmethod
     def register_account(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['register_account'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['register_account']['id'],
+            user
+        )
 
     @staticmethod
     def confirm_account_complete(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['confirm_account_complete'], user
+            LogEventType.EVENT_TYPES['confirm_account_complete']['id'],
+            user
         )
 
     @staticmethod
     def reauthenticate(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['reauthenticate'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['reauthenticate']['id'],
+            user
+        )
 
     @staticmethod
     def remember_me_bad_auth_token():
-        LogEvent._log(LogEventType.EVENT_TYPES['remember_me_bad_auth_token'])
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['remember_me_bad_auth_token']['id']
+        )
 
     @staticmethod
     def remember_me_cookie_malformed():
-        LogEvent._log(LogEventType.EVENT_TYPES['remember_me_cookie_malformed'])
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['remember_me_cookie_malformed']['id']
+        )
 
     @staticmethod
     def remember_me_authenticated(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['remember_me_authenticated'], user
+            LogEventType.EVENT_TYPES['remember_me_authenticated']['id'],
+            user
         )
 
     @staticmethod
     def session_bad_auth_token(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['session_bad_auth_token'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['session_bad_auth_token']['id'],
+            user
+        )
 
     @staticmethod
     def incorrect_password(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['incorrect_password'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['incorrect_password']['id'],
+            user
+        )
 
     @staticmethod
     def incorrect_email():
-        LogEvent._log(LogEventType.EVENT_TYPES['incorrect_email'])
+        LogEvent._log(LogEventType.EVENT_TYPES['incorrect_email']['id'])
 
     @staticmethod
     def password_change(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['password_change'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['password_change']['id'],
+            user
+        )
 
     @staticmethod
     def username_change(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['username_change'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['username_change']['id'],
+            user
+        )
 
     @staticmethod
     def email_change_request(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['email_change_request'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['email_change_request']['id'],
+            user
+        )
 
     @staticmethod
     def email_change_complete(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['email_change_complete'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['email_change_complete']['id'],
+            user
+        )
 
     @staticmethod
     def password_reset_request(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['password_reset_request'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['password_reset_request']['id'],
+            user
+        )
 
     @staticmethod
     def password_reset_complete(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['password_reset_complete'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['password_reset_complete']['id'],
+            user
+        )
 
     @staticmethod
     def account_locked(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['account_locked'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_locked']['id'],
+            user
+        )
 
     @staticmethod
     def account_unlocked(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['account_unlocked'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_unlocked']['id'],
+            user
+        )
 
     @staticmethod
     def account_locked_hard(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['account_locked_hard'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_locked_hard']['id'],
+            user
+        )
 
     @staticmethod
     def account_unlocked_hard(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['account_unlocked_hard'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_unlocked_hard']['id'],
+            user
+        )
 
     @staticmethod
     def account_locked_login_attempt(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['account_locked_login_attempt'], user
+            LogEventType.EVENT_TYPES['account_locked_login_attempt']['id'],
+            user
         )
 
     @staticmethod
     def confirm_account_token_expired(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['confirm_account_token_expired'], user
+            LogEventType.EVENT_TYPES['confirm_account_token_expired']['id'],
+            user
         )
 
     @staticmethod
     def confirm_account_token_invalid(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['confirm_account_token_invalid'], user
+            LogEventType.EVENT_TYPES['confirm_account_token_invalid']['id'],
+            user
         )
 
     @staticmethod
     def confirm_account_user_id_spoof(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['confirm_account_user_id_spoof'], user
+            LogEventType.EVENT_TYPES['confirm_account_user_id_spoof']['id'],
+            user
         )
 
     @staticmethod
     def email_change_token_expired(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['email_change_token_expired'], user
+            LogEventType.EVENT_TYPES['email_change_token_expired']['id'],
+            user
         )
 
     @staticmethod
     def email_change_token_invalid(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['email_change_token_invalid'], user
+            LogEventType.EVENT_TYPES['email_change_token_invalid']['id'],
+            user
         )
 
     @staticmethod
     def email_change_user_id_spoof(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['email_change_user_id_spoof'], user
+            LogEventType.EVENT_TYPES['email_change_user_id_spoof']['id'],
+            user
         )
 
     @staticmethod
     def password_reset_token_expired(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['password_reset_token_expired'], user
+            LogEventType.EVENT_TYPES['password_reset_token_expired']['id'],
+            user
         )
 
     @staticmethod
     def password_reset_token_invalid(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['password_reset_token_invalid'], user
+            LogEventType.EVENT_TYPES['password_reset_token_invalid']['id'],
+            user
         )
 
     @staticmethod
     def password_reset_user_id_spoof(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['password_reset_user_id_spoof'], user
+            LogEventType.EVENT_TYPES['password_reset_user_id_spoof']['id'],
+            user
         )
 
     @staticmethod
     def confirm_account_request(user):
-        LogEvent._log(LogEventType.EVENT_TYPES['confirm_account_request'], user)
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['confirm_account_request']['id'],
+            user
+        )
 
     @staticmethod
     def register_account_blocked():
-        LogEvent._log(LogEventType.EVENT_TYPES['register_account_blocked'])
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['register_account_blocked']['id']
+        )
 
     def __repr__(self):
         return '<LogEvent %r>' % self.type.name

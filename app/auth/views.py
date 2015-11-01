@@ -5,6 +5,7 @@ from flask.ext.login import login_user, logout_user, login_required, \
     current_user, fresh_login_required, confirm_login, login_fresh
 from . import auth
 from .. import db, login_manager
+from ..decorators import fresh_admin_or_404
 from ..models import User, LogEvent
 from ..email import send_email
 from ..messages import AuthMessages, flash_it
@@ -268,3 +269,18 @@ def change_email(token):
         flash_it(AuthMessages.INVALID_CONFIRMATION_LINK)
     return redirect(url_for('main.user',
                             username=current_user.username))
+
+@auth.route('/event-log')
+@fresh_admin_or_404
+def event_log():
+    try:
+        records = int(request.args.get('records'))
+    except (TypeError, ValueError):
+        records = 25
+    events = (
+        LogEvent.query
+            .order_by(LogEvent.logged_at.desc())
+            .limit(records)
+            .all()
+    )
+    return render_template('auth/event_log.html', events=events)

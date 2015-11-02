@@ -38,7 +38,7 @@ class LogEventType(db.Model):
         'account_unlocked': {'id': 7, 'context': 'success'},
         'account_disabled': {'id': 8, 'context': 'info'},
         'account_enabled': {'id': 9, 'context': 'success'},
-        'account_locked_login_attempt': {'id': 10, 'context': 'warning'},
+        'login_attempt_while_account_locked': {'id': 10, 'context': 'warning'},
         'register_account': {'id': 11, 'context': 'info'},
         'register_account_blocked': {'id': 12, 'context': 'info'},
         'confirm_account_request': {'id': 13, 'context': 'info'},
@@ -62,10 +62,17 @@ class LogEventType(db.Model):
         'password_reset_token_expired': {'id': 31, 'context': 'warning'},
         'password_reset_token_invalid': {'id': 32, 'context': 'danger'},
         'password_reset_user_id_spoof': {'id': 33, 'context': 'danger'},
-        'account_disabled_login_attempt': {'id': 34, 'context': 'warning'},
-        'account_locked_by_failed_logins': {'id': 35, 'context': 'danger'},
+        'login_attempt_while_account_disabled': {
+            'id': 34,
+            'context': 'warning'
+        },
+        'account_locked_by_failed_logins': {
+            'id': 35,
+            'context': 'danger'
+        },
         'password_reset_request_disabled_account': {
-            'id': 36, 'context': 'warning'
+            'id': 36,
+            'context': 'warning'
         },
     }
 
@@ -242,16 +249,18 @@ class LogEvent(db.Model):
         )
 
     @staticmethod
-    def account_locked_login_attempt(user):
+    def login_attempt_while_account_locked(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['account_locked_login_attempt']['id'],
+            (LogEventType.EVENT_TYPES
+                ['login_attempt_while_account_locked']['id']),
             user
         )
 
     @staticmethod
-    def account_disabled_login_attempt(user):
+    def login_attempt_while_account_disabled(user):
         LogEvent._log(
-            LogEventType.EVENT_TYPES['account_disabled_login_attempt']['id'],
+            (LogEventType.EVENT_TYPES
+                ['login_attempt_while_account_disabled']['id']),
             user
         )
 
@@ -449,9 +458,9 @@ class User(UserMixin, db.Model):
             if not check_password_hash(self.password_hash, password):
                 LogEvent.incorrect_password(self)
             if self.locked:
-                LogEvent.account_locked_login_attempt(self)
+                LogEvent.login_attempt_while_account_locked(self)
             if self.disabled:
-                LogEvent.account_disabled_login_attempt(self)
+                LogEvent.login_attempt_while_account_disabled(self)
             return False
         if check_password_hash(self.password_hash, password):
             self.last_failed_login_attempt = None

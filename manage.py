@@ -18,10 +18,10 @@ manager.add_command('db', MigrateCommand)
 
 
 @manager.command
-def seed():
-    """Seed the database."""
+def insert():
+    """Insert new records into database, if any"""
     Role.insert_roles()
-    LogEventType.seed_event_types()
+    LogEventType.insert_event_types()
 
 
 @manager.command

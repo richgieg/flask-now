@@ -77,12 +77,12 @@ class LogEventType(db.Model):
     }
 
     @staticmethod
-    def seed_event_types():
-        LogEventType.query.delete()
-        db.session.commit()
+    def insert_event_types():
         for name, data in LogEventType.EVENT_TYPES.iteritems():
-            event_type = LogEventType(id=data['id'], name=name,
-                                      context=data['context'])
+            event_type = LogEventType.query.filter_by(name=name).first()
+            if event_type is None:
+                event_type = LogEventType(name=name, id=data['id'],
+                                          context=data['context'])
             db.session.add(event_type)
         db.session.commit()
 

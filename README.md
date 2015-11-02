@@ -144,7 +144,7 @@ you will need to initialize its database. This can be completed by executing
 the following commands.
 ```
 ./manage.py db upgrade
-./manage.py seed
+./manage.py insert
 ```
 
 
@@ -218,7 +218,7 @@ git clone https://github.com/your-user-name/your-repo-name.git
 cd your-repo-name
 source setup
 ./manage.py db upgrade
-./manage.py seed
+./manage.py insert
 ```
 Also, they may need to alter the email server settings in ```config.py``` as
 well as set the required environment variables (see "Set Environment Variables"

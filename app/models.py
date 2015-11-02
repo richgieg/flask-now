@@ -5,6 +5,7 @@ from itsdangerous import Signer, TimedJSONWebSignatureSerializer as Serializer,\
     SignatureExpired, BadSignature
 from flask import current_app, request, session
 from flask.ext.login import UserMixin, AnonymousUserMixin, make_secure_token
+from sqlalchemy.ext.hybrid import hybrid_property
 from . import db, login_manager
 
 
@@ -35,6 +36,8 @@ class LogEventType(db.Model):
         'reauthenticate': {'id': 3, 'context': 'info'},
         'incorrect_password': {'id': 4, 'context': 'warning'},
         'incorrect_email': {'id': 5, 'context': 'warning'},
+        'account_confirmed': {'id': 50, 'context': 'info'},
+        'account_unconfirmed': {'id': 51, 'context': 'info'},
         'account_locked': {'id': 6, 'context': 'info'},
         'account_unlocked': {'id': 7, 'context': 'success'},
         'account_disabled': {'id': 8, 'context': 'info'},
@@ -223,6 +226,20 @@ class LogEvent(db.Model):
         )
 
     @staticmethod
+    def account_confirmed(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_confirmed']['id'],
+            user
+        )
+
+    @staticmethod
+    def account_unconfirmed(user):
+        LogEvent._log(
+            LogEventType.EVENT_TYPES['account_unconfirmed']['id'],
+            user
+        )
+
+    @staticmethod
     def account_locked(user):
         LogEvent._log(
             LogEventType.EVENT_TYPES['account_locked']['id'],
@@ -401,7 +418,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
-    confirmed = db.Column(db.Boolean, default=False)
+    _confirmed = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(64))
     location = db.Column(db.String(64))
     about_me = db.Column(db.Text())
@@ -479,6 +496,19 @@ class User(UserMixin, db.Model):
             self.locked = True
             LogEvent.account_locked_by_failed_logins(self)
         return False
+
+    @hybrid_property
+    def confirmed(self):
+        return self._confirmed
+
+    @confirmed.setter
+    def confirmed(self, confirmed):
+        if confirmed and not self._confirmed:
+            self._confirmed = True
+            LogEvent.account_confirmed(self)
+        elif not confirmed and self._confirmed:
+            self._confirmed = False
+            LogEvent.account_unconfirmed(self)
 
     @property
     def locked(self):

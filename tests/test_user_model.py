@@ -234,3 +234,17 @@ class UserModelTestCase(unittest.TestCase):
     def test_user_registration_fails_when_not_allowing_new_users(self):
         self.app.config['APP_ALLOW_NEW_USERS'] = False
         self.assertFalse(User.can_register())
+
+    def test_new_user_account_is_enabled(self):
+        u = User(password='cat')
+        self.assertTrue(u.enabled)
+
+    def test_verify_password_fails_when_account_is_disabled(self):
+        u = User(password='cat')
+        u.enabled = False
+        self.assertFalse(u.verify_password('cat'))
+
+    def test_verify_password_fails_when_account_is_locked(self):
+        u = User(password='cat')
+        u.locked = True
+        self.assertFalse(u.verify_password('cat'))

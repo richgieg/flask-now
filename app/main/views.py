@@ -55,7 +55,7 @@ def edit_profile_admin(id):
         user.email = form.email.data
         user.username = form.username.data
         user.confirmed = form.confirmed.data
-        user.disabled = form.disabled.data
+        user.enabled = form.enabled.data
         user.locked = form.locked.data
         user.role = Role.query.get(form.role.data)
         user.name = form.name.data
@@ -66,7 +66,7 @@ def edit_profile_admin(id):
         return redirect(url_for('.user', username=user.username))
     form.email.data = user.email
     form.username.data = user.username
-    form.disabled.data = user.disabled
+    form.enabled.data = user.enabled
     form.locked.data = user.locked
     form.confirmed.data = user.confirmed
     form.role.data = user.role_id

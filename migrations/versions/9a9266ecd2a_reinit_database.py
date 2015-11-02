@@ -1,13 +1,13 @@
-"""Database design overhaul
+"""Reinit database
 
-Revision ID: 414073873d21
+Revision ID: 9a9266ecd2a
 Revises: None
-Create Date: 2015-11-01 00:41:19.657764
+Create Date: 2015-11-01 19:19:03.055499
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '414073873d21'
+revision = '9a9266ecd2a'
 down_revision = None
 
 from alembic import op
@@ -49,7 +49,7 @@ def upgrade():
     sa.Column('last_failed_login_attempt', sa.DateTime(), nullable=True),
     sa.Column('failed_login_attempts', sa.Integer(), nullable=True),
     sa.Column('_locked', sa.Boolean(), nullable=True),
-    sa.Column('_disabled', sa.Boolean(), nullable=True),
+    sa.Column('_enabled', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

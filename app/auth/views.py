@@ -25,7 +25,7 @@ def verify_password(user, password):
     is_valid_password = user.verify_password(password)
     if user.locked:
         session['_locked'] = True
-    if user.disabled:
+    if not user.enabled:
         session['_disabled'] = True
     return is_valid_password
 
@@ -215,7 +215,7 @@ def password_reset_request():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            if user.disabled:
+            if not user.enabled:
                 flash_it(AuthMessages.PASSWORD_RESET_REQUEST_DISABLED_ACCOUNT)
                 LogEvent.password_reset_request_disabled_account(user)
             else:

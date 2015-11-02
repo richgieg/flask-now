@@ -411,7 +411,7 @@ class User(UserMixin, db.Model):
                                           default=datetime.utcnow)
     failed_login_attempts = db.Column(db.Integer, default=0)
     _locked = db.Column(db.Boolean, default=False)
-    _disabled = db.Column(db.Boolean, default=False)
+    _enabled = db.Column(db.Boolean, default=True)
     log_events = db.relationship('LogEvent', backref='user')
 
     def __init__(self, **kwargs):
@@ -454,12 +454,12 @@ class User(UserMixin, db.Model):
             else:
                 LogEvent.incorrect_password(self)
                 return False
-        if self.locked or self.disabled:
+        if self.locked or not self.enabled:
             if not check_password_hash(self.password_hash, password):
                 LogEvent.incorrect_password(self)
             if self.locked:
                 LogEvent.login_attempt_while_account_locked(self)
-            if self.disabled:
+            if not self.enabled:
                 LogEvent.login_attempt_while_account_disabled(self)
             return False
         if check_password_hash(self.password_hash, password):
@@ -496,19 +496,20 @@ class User(UserMixin, db.Model):
             LogEvent.account_unlocked(self)
 
     @property
-    def disabled(self):
-        return self._disabled
+    def enabled(self):
+        return self._enabled
 
-    @disabled.setter
-    def disabled(self, disabled):
-        if disabled and not self._disabled:
-            self._disabled = True
+    @enabled.setter
+    def enabled(self, enabled):
+        if enabled and not self._enabled:
+            self._enabled = True
+            LogEvent.account_enabled(self)
+
+        elif not enabled and self._enabled:
+            self._enabled = False
             # Invalidate sessions and remember cookies.
             self.randomize_auth_token()
             LogEvent.account_disabled(self)
-        elif not disabled and self._disabled:
-            self._disabled = False
-            LogEvent.account_enabled(self)
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)

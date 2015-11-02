@@ -28,6 +28,7 @@ class LogEventType(db.Model):
     name = db.Column(db.String(64), unique=True)
     context = db.Column(db.String(64))
     events = db.relationship('LogEvent', backref='type')
+    # The id values must not be changed.
     EVENT_TYPES = {
         'log_in': {'id': 1, 'context': 'info'},
         'log_out': {'id': 2, 'context': 'info'},
@@ -79,10 +80,11 @@ class LogEventType(db.Model):
     @staticmethod
     def insert_event_types():
         for name, data in LogEventType.EVENT_TYPES.iteritems():
-            event_type = LogEventType.query.filter_by(name=name).first()
+            event_type = LogEventType.query.get(data['id'])
             if event_type is None:
-                event_type = LogEventType(name=name, id=data['id'],
-                                          context=data['context'])
+                event_type = LogEventType(id=data['id'])
+            event_type.name = name
+            event_type.context = data['context']
             db.session.add(event_type)
         db.session.commit()
 
